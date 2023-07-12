@@ -1,5 +1,6 @@
+import glob
 import datetime
-from tkinter import Tk, Button, Text, font, END
+from tkinter import Tk, Button, Text, font, END, filedialog
 
 class PO_Extractor:
     """
@@ -33,7 +34,8 @@ class PO_Extractor:
         self.__root.geometry(f"{self.__windowSize[0]}x{self.__windowSize[1]}")
         self.__root.resizable(False, False)
         self.__root.configure(background=self.__colors[1])
-
+        self.__srcDir = "C:/PDFextract"
+        self.__poFilesList = []
         self.__buildLayout()
 
     def __buildLayout(self)->None:
@@ -57,6 +59,7 @@ class PO_Extractor:
             activebackground=self.__colors[1],
             width=50,
             relief='groove',
+            command=self.__selectDirectory
             )
         self.__buttonSelect.grid(
             row=0,column=0,
@@ -101,6 +104,23 @@ class PO_Extractor:
             ipadx=10,ipady=10,
             padx=10,pady=10)
 
+    def __loadFiles(self)->None:
+        """
+            Load purchase order documents from default/selected directory
+        """
+        self.__poFilesList = glob.glob(self.__srcDir + "/*.pdf")
+        if len(self.__poFilesList)==0:
+            self.__log(f"No pdf files found from directory {self.__srcDir}.")
+        else:
+            self.__log(f"{len(self.__poFilesList)} pdf files loaded from directory {self.__srcDir}.")
+
+    def __selectDirectory(self)->None:
+        """
+            Select a source directory path
+        """
+        self.__srcDir = filedialog.askdirectory()
+        self.__loadFiles()
+
     def __log(self, message:str)->None:
         """
             Create the log message with event details
@@ -114,6 +134,7 @@ class PO_Extractor:
             Run the application
         """
         self.__log('PO Extractor started.')
+        self.__loadFiles()
         self.__root.mainloop()
 
 if __name__ == "__main__":
