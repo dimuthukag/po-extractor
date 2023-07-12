@@ -153,6 +153,9 @@ class PO_Extractor:
         """
             Start the data extraction
         """
+        self.__buttonSelect.configure(state='disabled')
+        self.__buttonExtract.configure(state='disabled')
+
         if not os.path.exists(self.__srcDir + "/completed"):
             os.mkdir(self.__srcDir + "/completed")
             self.__log("./completed dir created.")
@@ -169,6 +172,9 @@ class PO_Extractor:
             self.__log(f"[{os.path.basename(poDoc)}] moved to ./completed.")
             os.remove(poDoc)
         self.__log("Data extraction finished.")
+
+        self.__buttonSelect.configure(state='normal')
+        self.__buttonExtract.configure(state='normal')
 
     def __writeData(self,poDetails:list)->None:
         """
