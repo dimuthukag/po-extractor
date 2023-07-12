@@ -1,6 +1,11 @@
+import os
 import glob
 import datetime
+import shutil
 from tkinter import Tk, Button, Text, font, END, filedialog
+from threading import Thread
+from openpyxl import load_workbook
+from po_formats import po_type_1
 
 class PO_Extractor:
     """
@@ -70,6 +75,9 @@ class PO_Extractor:
         """
             Create the tkinter button for 'Extract PO Data'
         """
+        def startThread():
+            _t = Thread(target=self.__startExtraction)
+            _t.start()
         self.__buttonExtract = Button(
             self.__root, 
             text="Extract PO Data",
@@ -78,7 +86,8 @@ class PO_Extractor:
             fg = self.__colors[3],
             activebackground=self.__colors[1],
             width=50,
-            relief='groove'
+            relief='groove',
+            command=startThread
             )
         self.__buttonExtract.grid(
             row=0,column=1,
@@ -120,6 +129,96 @@ class PO_Extractor:
         """
         self.__srcDir = filedialog.askdirectory()
         self.__loadFiles()
+
+    def __getPurchaseOrderFileType(self,poDocFilepath:str)->str:
+        """
+            Returns the buyer type of the purchase order file
+        """
+        poDoc = po_type_1.PO_TYPE_1(poDocFilepath)
+        # currently bypassing the type 1 . Change this in future
+        return "TYPE-1"
+
+    def __extractData(self,poDocFilepath:str)->tuple:
+        """
+            Returns the extracted data
+        """
+        poFileType = self.__getPurchaseOrderFileType(poDocFilepath)
+        match poFileType:
+            case "TYPE-1":
+                poDoc = po_type_1.PO_TYPE_1(poDocFilepath)
+                (poDetails) = poDoc.output()
+        return (poDetails)
+
+    def __startExtraction(self)->None:
+        """
+            Start the data extraction
+        """
+        if not os.path.exists(self.__srcDir + "/completed"):
+            os.mkdir(self.__srcDir + "/completed")
+            self.__log("./completed dir created.")
+
+        self.__log("Data extraction started.")
+        for poDoc in self.__poFilesList:
+            self.__log(f"[{os.path.basename(poDoc)}] Extraction started.")
+            poDetails = self.__extractData(poDoc)
+            self.__log(f"[{os.path.basename(poDoc)}] Extraction completed.")
+            self.__log(f"[{os.path.basename(poDoc)}] Writing data to excel.")
+            self.__writeData(poDetails)
+            self.__log(f"[{os.path.basename(poDoc)}] Writing data to excel completed.")
+            shutil.copy(poDoc,f"{self.__srcDir}/completed/")
+            self.__log(f"[{os.path.basename(poDoc)}] moved to ./completed.")
+            os.remove(poDoc)
+        self.__log("Data extraction finished.")
+
+    def __writeData(self,poDetails:list)->None:
+        """
+            Write extracted data to the standard excel format
+        """
+        try:
+            buyer = poDetails[0]["buyer"].split(" ")[0]
+        except IndexError:
+            buyer = "_"
+
+        excelFile = f'{self.__srcDir}/PO_{buyer}.xlsx'
+        try:
+            workbook = load_workbook(excelFile)
+        except FileNotFoundError:
+            shutil.copy("./po_std_format.xlsx",excelFile)
+            workbook = load_workbook(excelFile)
+
+        worksheet = workbook['1']
+        maxRow = worksheet.max_row+1
+        for poDetail in poDetails:
+            purchaseOrders = poDetail['purchase_orders']
+            for destNumber in purchaseOrders.keys():
+                packsData = purchaseOrders[destNumber]['packs_data']
+                for packData in packsData:
+                    worksheet[f'D{maxRow}'].value = poDetail['company']
+                    worksheet[f'E{maxRow}'].value = poDetail['consignee']
+                    worksheet[f'F{maxRow}'].value = poDetail['buyer']
+                    worksheet[f'I{maxRow}'].value = poDetail['season_year']
+                    worksheet[f'J{maxRow}'].value = poDetail['season']
+                    worksheet[f'K{maxRow}'].value = poDetail['style']
+                    worksheet[f'L{maxRow}'].value = poDetail['style_desc']
+                    worksheet[f'M{maxRow}'].value = poDetail['gmt_item']
+                    worksheet[f'N{maxRow}'].value = poDetail['uom']
+                    worksheet[f'P{maxRow}'].value = poDetail['total_qty']
+                    worksheet[f'Q{maxRow}'].value = poDetail['currency']
+                    worksheet[f'R{maxRow}'].value = poDetail['factory']
+                    worksheet[f'S{maxRow}'].value = purchaseOrders[destNumber]['ship_date']
+                    worksheet[f'W{maxRow}'].value = poDetail['fabric']
+                    worksheet[f'Z{maxRow}'].value = purchaseOrders[destNumber]['size_range']
+                    worksheet[f'AA{maxRow}'].value = destNumber
+                    worksheet[f'AB{maxRow}'].value = poDetail['po_date']
+                    worksheet[f'AE{maxRow}'].value = purchaseOrders[destNumber]['dest']
+
+                    worksheet[f'AF{maxRow}'].value = packData['pack_colour']
+                    worksheet[f'AG{maxRow}'].value = packData['pack_sizes']
+                    worksheet[f'AI{maxRow}'].value = packData['n_units']
+                    worksheet[f'AJ{maxRow}'].value = purchaseOrders[destNumber]['supplier_cost']
+                    maxRow +=1
+        workbook.save(excelFile)
+        workbook.close()
 
     def __log(self, message:str)->None:
         """
