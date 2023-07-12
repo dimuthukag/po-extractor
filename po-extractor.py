@@ -153,22 +153,30 @@ class PO_Extractor:
         """
             Start the data extraction
         """
-        if not os.path.exists(self.__srcDir + "/completed"):
-            os.mkdir(self.__srcDir + "/completed")
-            self.__log("./completed dir created.")
+        self.__buttonSelect.configure(state='disabled')
+        self.__buttonExtract.configure(state='disabled')
 
-        self.__log("Data extraction started.")
-        for poDoc in self.__poFilesList:
-            self.__log(f"[{os.path.basename(poDoc)}] Extraction started.")
-            poDetails = self.__extractData(poDoc)
-            self.__log(f"[{os.path.basename(poDoc)}] Extraction completed.")
-            self.__log(f"[{os.path.basename(poDoc)}] Writing data to excel.")
-            self.__writeData(poDetails)
-            self.__log(f"[{os.path.basename(poDoc)}] Writing data to excel completed.")
-            shutil.copy(poDoc,f"{self.__srcDir}/completed/")
-            self.__log(f"[{os.path.basename(poDoc)}] moved to ./completed.")
-            os.remove(poDoc)
-        self.__log("Data extraction finished.")
+        if len(self.__poFilesList)>0:
+            if not os.path.exists(self.__srcDir + "/completed"):
+                os.mkdir(self.__srcDir + "/completed")
+                self.__log("./completed dir created.")
+
+            self.__log("Data extraction started.")
+            for poDoc in self.__poFilesList:
+                self.__log(f"[{os.path.basename(poDoc)}] Extraction started.")
+                poDetails = self.__extractData(poDoc)
+                self.__log(f"[{os.path.basename(poDoc)}] Extraction completed.")
+                self.__log(f"[{os.path.basename(poDoc)}] Writing data to excel.")
+                self.__writeData(poDetails)
+                self.__log(f"[{os.path.basename(poDoc)}] Writing data to excel completed.")
+                shutil.copy(poDoc,f"{self.__srcDir}/completed/")
+                self.__log(f"[{os.path.basename(poDoc)}] moved to ./completed.")
+                os.remove(poDoc)
+            self.__log("Data extraction finished.")
+        else:
+            self.__log("No pdf files to extract.")
+        self.__buttonSelect.configure(state='normal')
+        self.__buttonExtract.configure(state='normal')
 
     def __writeData(self,poDetails:list)->None:
         """
