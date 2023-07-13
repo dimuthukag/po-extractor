@@ -104,10 +104,20 @@ class PO_TYPE_4(PO_BASE):
         try:
             sizeDict = {size : sizeWeightDict[size] for size in sizeList}
             sortedSizeList = sorted(sizeDict.items(), key=lambda x:x[1])
+            _fisrt = sortedSizeList[0][0]
+            _last = sortedSizeList[-1][0]
+            for sizeNumber in range(0,7):
+                if sizeNumber==0:
+                    pass
+                elif sizeNumber==1:
+                    pass
+                else:
+                    _fisrt = _fisrt.replace(f"{sizeNumber}XS",f"{sizeNumber*'X'}S")
+                    _fisrt = _fisrt.replace(f"{sizeNumber}XL",f"{sizeNumber*'X'}L")           
             if len(sortedSizeList)==1:
-                return f"{sortedSizeList[0][0]}"
+                return f"{_fisrt}"
             elif len(sortedSizeList)>1:
-                return f"{sortedSizeList[0][0]} - {sortedSizeList[-1][0]}"
+                return f"{_fisrt} - {_last}"
 
         except KeyError:
             sizeList = [int(size) for size in sizeList]
