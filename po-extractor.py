@@ -260,8 +260,8 @@ class PO_Extractor:
         workbook.close()
 
     def __saveLog(self)->None:
-        os.makedirs("../../log",exist_ok=True)
-        log_filename = f'po-extractor log {datetime.datetime.now().strftime("%d-%m-%Y %H-%M-%S")} .txt'
+        os.makedirs(f"{self.__srcDir}/log",exist_ok=True)
+        log_filename = f'{self.__srcDir}\log\po-extractor log {datetime.datetime.now().strftime("%d-%m-%Y %H-%M-%S")} .txt'
         with open(log_filename,'w') as log_file:
             log_file.write(self.__textFieldLog.get("1.0",END))
         self.__log(f'Log file saved to {os.getcwd()}')
