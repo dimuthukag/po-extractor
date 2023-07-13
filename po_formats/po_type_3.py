@@ -59,12 +59,15 @@ class PO_TYPE_3(PO_BASE):
         """
             Returns the style description
         """
-        componentsList = re.findall(r"\d+\-?\—?\d+\-?\—?\d+\s+\d+\s+\$?[\d\.]+([A-Z0-9\s&]+)\s+[A-Z/]+\s+[0-9]*[SMXL]*\s+[A-Z0-9]*\s?\d+\.\d+",self.__dataPartition[2].replace("&",""))
+        componentsList = re.findall(r"\d+\-?\—?\d+\-?\—?\d+\s+\d+\s+\$?[\d\.]+([A-Z0-9\s&]+)\s+[A-Z/]+\s+[0-9]*[SMXL]*\s+[A-Z0-9]*\s?\d+\.\d+",self.__dataPartition[2].upper())
         try:
             return componentsList[0].strip()
         except IndexError:
-            return re.findall(r"\d+\-?\—?\d+\-?\—?\d+\s+\d+\s+\$?[\d\.]+([A-Z0-9\s&]+)\s+[A-Z/]+\s+[0-9]*[SMXL]*\s?[A-Z0-9]*\s?\d+\.\d+",self.__dataPartition[2].replace("&",""))[0].strip()
-
+            try:
+                return re.findall(r"\d+\-?\—?\d+\-?\—?\d+\s+\d+\s+\$?[\d\.]+([A-Z0-9\s&]+)\s+[A-Z/]+\s+[0-9]*[SMXL]*\s?[A-Z0-9]*\s?\d+\.\d+",self.__dataPartition[2].upper())[0].strip()
+            except IndexError:
+                return re.findall(r"\d+\—+\d+\—+\d+\s?\—+([A-Z0-9\s&]+)\s+[A-Z/]{3,}\s+[0-9]*[SMXL]*",self.__dataPartition[2].replace("-","—").upper())[0].strip()
+    
     def __totalQuantity(self)->int:
         """
             Returns the total quantity
