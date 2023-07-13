@@ -193,7 +193,6 @@ class PO_TYPE_1(PO_BASE):
                             "n_packs":int(rawDestData[3]),
                             "ship_date":datetime.strptime(shipdate,"%Y%m%d").strftime("%d-%b-%y"),
                             "size_range":"",
-                            "supplier_cost":None,
                             "packs_data":[]
                         }
                         poDict[rawDestData[0]] = destSummary
@@ -222,7 +221,8 @@ class PO_TYPE_1(PO_BASE):
                                 'pack_sizes': self.__getSizeRange(purchaseOrder[1].strip().replace(" "," - ")),
                                 'pack_colour': purchaseOrder[2],
                                 'n_packs':int(purchaseOrder[3]),
-                                'n_units':int(purchaseOrder[4])
+                                'n_units':int(purchaseOrder[4]),
+                                "supplier_cost":float(supplierCost)
                             }
                             sizeList.append(self.__getSizeRange(purchaseOrder[1].strip().replace(" "," - ")))
                     elif purchaseOrder[2] in colourBasedPurchaseOrderDataDict.keys():
@@ -231,7 +231,8 @@ class PO_TYPE_1(PO_BASE):
                             'pack_sizes': self.__getSizeRange(currentPurchaseOrder['pack_sizes'],purchaseOrder[1]),
                             'pack_colour': purchaseOrder[2],
                             'n_packs':currentPurchaseOrder['n_packs'] + int(purchaseOrder[3]),
-                            'n_units':currentPurchaseOrder['n_units'] + int(purchaseOrder[4])
+                            'n_units':currentPurchaseOrder['n_units'] + int(purchaseOrder[4]),
+                            "supplier_cost":float(supplierCost)
                         }
                         sizeList.append(self.__getSizeRange(purchaseOrder[1].strip().replace(" "," - ")))
                 sizeRange = self.__getSizeRange(" - ".join(sizeList))
@@ -239,7 +240,6 @@ class PO_TYPE_1(PO_BASE):
                     poDict[destNumber]['size_range'] =  f"{sizeRange.split(' - ')[0]} - {sizeRange.split(' - ')[-1]}"
                 elif sizeRange.split(' - ')[0] == sizeRange.split(' - ')[-1]:
                     poDict[destNumber]['size_range'] =  f"{sizeRange.split(' - ')[0]}"
-                poDict[destNumber]["supplier_cost"]=float(supplierCost)
                 poDict[destNumber]['packs_data'] = list(colourBasedPurchaseOrderDataDict.values())
         return poDict
 

@@ -245,9 +245,9 @@ class PO_Extractor:
                     worksheet[f'AF{maxRow}'].value = packData['pack_colour']
                     worksheet[f'AG{maxRow}'].value = packData['pack_sizes']
                     worksheet[f'AI{maxRow}'].value = packData['n_units']
-                    worksheet[f'AJ{maxRow}'].value = purchaseOrders[destNumber]['supplier_cost']
+                    worksheet[f'AJ{maxRow}'].value = packData['supplier_cost']
                     if poFileType=="TYPE-2":
-                        worksheet[f'AK{maxRow}'].value = purchaseOrders[destNumber]['supplier_cost']                   
+                        worksheet[f'AK{maxRow}'].value = packData['supplier_cost']                   
                     maxRow +=1
         workbook.save(excelFile)
         workbook.close()
