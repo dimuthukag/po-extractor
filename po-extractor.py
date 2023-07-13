@@ -5,7 +5,7 @@ import shutil
 from tkinter import Tk, Button, Text, font, END, filedialog
 from threading import Thread
 from openpyxl import load_workbook
-from po_formats import po_type_1
+from po_formats import po_base, po_type_1, po_type_2
 
 class PO_Extractor:
     """
@@ -134,9 +134,11 @@ class PO_Extractor:
         """
             Returns the buyer type of the purchase order file
         """
-        poDoc = po_type_1.PO_TYPE_1(poDocFilepath)
-        # currently bypassing the type 1 . Change this in future
-        return "TYPE-1"
+        poDoc = po_base.PO_BASE(poDocFilepath)
+        if "PRIMARK" in poDoc.getPage(1).upper():
+            return "TYPE-1"
+        elif "KMART" in poDoc.getPage(1).upper():
+            return "TYPE-2"
 
     def __extractData(self,poDocFilepath:str)->tuple:
         """
@@ -146,8 +148,10 @@ class PO_Extractor:
         match poFileType:
             case "TYPE-1":
                 poDoc = po_type_1.PO_TYPE_1(poDocFilepath)
-                (poDetails) = poDoc.output()
-        return (poDetails)
+            case "TYPE-2":
+                poDoc = po_type_2.PO_TYPE_2(poDocFilepath)
+        (poDetails) = poDoc.output()
+        return (poDetails, poFileType)
 
     def __startExtraction(self)->None:
         """
@@ -164,10 +168,10 @@ class PO_Extractor:
             self.__log("Data extraction started.")
             for poDoc in self.__poFilesList:
                 self.__log(f"[{os.path.basename(poDoc)}] Extraction started.")
-                poDetails = self.__extractData(poDoc)
+                (poDetails, poFileType) = self.__extractData(poDoc)
                 self.__log(f"[{os.path.basename(poDoc)}] Extraction completed.")
                 self.__log(f"[{os.path.basename(poDoc)}] Writing data to excel.")
-                self.__writeData(poDetails)
+                self.__writeData(poDetails, poFileType)
                 self.__log(f"[{os.path.basename(poDoc)}] Writing data to excel completed.")
                 shutil.copy(poDoc,f"{self.__srcDir}/completed/")
                 self.__log(f"[{os.path.basename(poDoc)}] moved to ./completed.")
@@ -178,7 +182,7 @@ class PO_Extractor:
         self.__buttonSelect.configure(state='normal')
         self.__buttonExtract.configure(state='normal')
 
-    def __writeData(self,poDetails:list)->None:
+    def __writeData(self,poDetails:list,poFileType:str)->None:
         """
             Write extracted data to the standard excel format
         """
@@ -216,7 +220,7 @@ class PO_Extractor:
                     worksheet[f'S{maxRow}'].value = purchaseOrders[destNumber]['ship_date']
                     worksheet[f'W{maxRow}'].value = poDetail['fabric']
                     worksheet[f'Z{maxRow}'].value = purchaseOrders[destNumber]['size_range']
-                    worksheet[f'AA{maxRow}'].value = destNumber
+                    worksheet[f'AA{maxRow}'].value = purchaseOrders[destNumber]['dest_num']
                     worksheet[f'AB{maxRow}'].value = poDetail['po_date']
                     worksheet[f'AE{maxRow}'].value = purchaseOrders[destNumber]['dest']
 
@@ -224,6 +228,8 @@ class PO_Extractor:
                     worksheet[f'AG{maxRow}'].value = packData['pack_sizes']
                     worksheet[f'AI{maxRow}'].value = packData['n_units']
                     worksheet[f'AJ{maxRow}'].value = purchaseOrders[destNumber]['supplier_cost']
+                    if poFileType=="TYPE-2":
+                        worksheet[f'AK{maxRow}'].value = purchaseOrders[destNumber]['supplier_cost']                   
                     maxRow +=1
         workbook.save(excelFile)
         workbook.close()
