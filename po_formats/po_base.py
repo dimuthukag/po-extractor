@@ -43,3 +43,15 @@ class PO_BASE:
             Returns the scaling factor used for a image based po file
         """
         return self.__scalingFactor
+    
+    def getCurrencySymbol(self,currency:str)->str:
+        """
+            Returns the currency symbol for a given currency type
+        """
+        currencySymbolDict = {
+            "USD":"$"
+        }
+        try:
+            return currencySymbolDict[currency]
+        except KeyError:
+            return "-"

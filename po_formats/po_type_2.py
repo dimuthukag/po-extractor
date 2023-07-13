@@ -37,7 +37,7 @@ class PO_TYPE_2(PO_BASE):
         """
             Returns the company name
         """
-        return re.findall(r"\s?SUPPLIER\s?\n\d+\s+(.*)\s?\n",self.getPage(1))[0].strip().upper()
+        return re.findall(r"\s?SUPPLIER\s?\n\s?\d+\s+(.*)\s?\n",self.getPage(1))[0].strip().upper()
 
     def __poNumber(self)->int:
         """
@@ -79,7 +79,7 @@ class PO_TYPE_2(PO_BASE):
         """
             Returns the currency type
         """
-        return re.findall(r"\s+CURRENCY\s?:\s?([A-Z]+)\s?",self.__dataPartition[partitionNumber])[0]
+        return self.getCurrencySymbol(re.findall(r"\s+CURRENCY\s?:\s?([A-Z]+)\s?",self.__dataPartition[partitionNumber])[0])
 
     def __getSizeRange(self,currentSizes:str,newSizes:str=None)->str:
         """
@@ -131,7 +131,7 @@ class PO_TYPE_2(PO_BASE):
         supplierCost = float(re.findall(r"COST\s+PER\s+UNIT\s?-\s?HOME\s+COST\s?:\s?([0-9\.]+)\s+",self.__dataPartition[partitionNumber])[0])
         shipDate = datetime.strptime(re.findall(r"\s?DLV\s+CONS\s+DATE\s?:\s?([0-9]+/[0-9]+/[0-9]+)",self.getPage(1))[0],"%d/%m/%y").strftime("%d-%b-%y")
 
-        destList = re.findall(r"(.*)\nLOCN\s?:\s?QTY\s?",self.__dataPartition[partitionNumber])[0].strip().split(" ")
+        destList = re.findall(r"(.*)\n\s?LOCN\s?:\s?QTY\s?",self.__dataPartition[partitionNumber])[0].strip().split(" ")
         destNumberList = re.findall(r"(\d+)\s?:\s?\d+",self.__dataPartition[partitionNumber])
         destQuantityList = re.findall(r"\d+\s?:\s?(\d+)",self.__dataPartition[partitionNumber])
 

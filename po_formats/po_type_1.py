@@ -97,7 +97,7 @@ class PO_TYPE_1(PO_BASE):
         """
             Returns the currency type
         """
-        return re.findall(r"Currency:\s+([a-zA-Z]+)",self.getPage(1))[0].strip().upper()
+        return self.getCurrencySymbol(re.findall(r"Currency:\s+([a-zA-Z]+)",self.getPage(1))[0].strip().upper())
 
     def __factory(self)->str:
         """
