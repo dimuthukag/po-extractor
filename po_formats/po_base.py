@@ -11,9 +11,9 @@ class PO_BASE:
         self.__poDocFilepath = poDocFilepath
         self.__scalingFactor = scalingFactor
         if poDocContent==None:
-            if os.path.basename(self.__poDocFilepath).endswith(".PDF"):
+            if os.path.basename(self.__poDocFilepath).upper().endswith(".PDF"):
                 self.__poDoc = pypdfium2.PdfDocument(self.__poDocFilepath)
-            elif os.path.basename(self.__poDocFilepath).endswith(".TXT"):
+            elif os.path.basename(self.__poDocFilepath).upper().endswith(".TXT"):
                 poDocContent = ""
                 with open(self.__poDocFilepath,'r') as poFile:
                     poDocContent = poFile.read()
