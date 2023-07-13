@@ -105,7 +105,7 @@ class PO_Extractor:
             activebackground=self.__colors[1],
             width=8,
             relief='groove',
-            #command=self.__saveLog  (implement this method in future)
+            command=self.__saveLog
             )
         self.__buttonSaveLog.grid(
             row=0,column=2,
@@ -251,6 +251,12 @@ class PO_Extractor:
                     maxRow +=1
         workbook.save(excelFile)
         workbook.close()
+
+    def __saveLog(self)->None:
+        log_filename = f'po-extractor log {datetime.datetime.now().strftime("%d-%m-%Y %H-%M-%S")} .txt'
+        with open(log_filename,'w') as log_file:
+            log_file.write(self.__textFieldLog.get("1.0",END))
+        self.__log(f'Log file saved to {os.getcwd()}')
 
     def __log(self, message:str)->None:
         """
