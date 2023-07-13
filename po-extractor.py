@@ -49,6 +49,7 @@ class PO_Extractor:
         """
         self.__createButton_selectDirectory()
         self.__createButton_extractData()
+        self.__createButton_saveLog()
         self.__createTextField_log()
 
     def __createButton_selectDirectory(self)->None:
@@ -62,7 +63,7 @@ class PO_Extractor:
             bg = self.__colors[0],
             fg = self.__colors[3],
             activebackground=self.__colors[1],
-            width=50,
+            width=44,
             relief='groove',
             command=self.__selectDirectory
             )
@@ -85,12 +86,29 @@ class PO_Extractor:
             bg = self.__colors[0],
             fg = self.__colors[3],
             activebackground=self.__colors[1],
-            width=50,
+            width=44,
             relief='groove',
             command=startThread
             )
         self.__buttonExtract.grid(
             row=0,column=1,
+            ipadx=10,ipady=10,
+            padx=10,pady=10)
+
+    def __createButton_saveLog(self)->None:
+        self.__buttonSaveLog = Button(
+            self.__root, 
+            text="Save Log",
+            font=self.__fonts[1],
+            bg = self.__colors[0],
+            fg = self.__colors[3],
+            activebackground=self.__colors[1],
+            width=8,
+            relief='groove',
+            #command=self.__saveLog  (implement this method in future)
+            )
+        self.__buttonSaveLog.grid(
+            row=0,column=2,
             ipadx=10,ipady=10,
             padx=10,pady=10)
 
@@ -109,7 +127,7 @@ class PO_Extractor:
             state='disabled'
             )
         self.__textFieldLog.grid(
-            row=1,column=0,columnspan=2,
+            row=1,column=0,columnspan=3,
             ipadx=10,ipady=10,
             padx=10,pady=10)
 
