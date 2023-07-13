@@ -135,7 +135,7 @@ class PO_Extractor:
         """
             Load purchase order documents from default/selected directory
         """
-        self.__poFilesList = glob.glob(self.__srcDir + "/*.pdf")
+        self.__poFilesList = glob.glob(self.__srcDir + "/*.pdf") + glob.glob(self.__srcDir + "/*.txt")
         if len(self.__poFilesList)==0:
             self.__log(f"No pdf files found from directory {self.__srcDir}.")
         else:
