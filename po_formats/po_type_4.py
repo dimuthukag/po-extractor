@@ -68,10 +68,11 @@ class PO_TYPE_4(PO_BASE):
         """
             Returns the shipment mode
         """
-        try:
+        """try:
             return re.findall(r"\s?INSTRUCTIONS\s?:\s?FOB\s?[A-Z]+\s+\$?[\d\.]+\s+ETD\s+[0-9/]+\s+ETA\s+[0-9/]+\s+([A-Z]+)\s+",self.getPage(self.numPages()).upper())[0]
         except IndexError:
-            return ""
+            return """""
+        return 'SEA'
         
     def __getSizeRange(self,currentSize:str,newSize:str=None)->str:
         """

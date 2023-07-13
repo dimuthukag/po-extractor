@@ -244,7 +244,7 @@ class PO_TYPE_2(PO_BASE):
                 "po_num":self.__poNumber(),
                 "po_date":self.__poDate(),
                 "po_status":"",
-                "shipment_mode":"",
+                "shipment_mode":"SEA",
                 "purchase_orders":partitionBasedDestDict[partitionNumber]
             }
             poDetails.append(poDetail)

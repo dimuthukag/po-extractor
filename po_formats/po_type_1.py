@@ -272,7 +272,7 @@ class PO_TYPE_1(PO_BASE):
             "po_num":self.__poNumber(),
             "po_date":self.__poDate(),
             "po_status":"",
-            "shipment_mode":"",
+            "shipment_mode":"SEA",
             "purchase_orders":self.__purchaseOrders()
         }
         return [poDetails]

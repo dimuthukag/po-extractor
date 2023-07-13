@@ -90,7 +90,8 @@ class PO_TYPE_3(PO_BASE):
         """
             Returns the shipment mode
         """
-        return re.findall(r"Transport\s?:\s?([A-Z\s]+)\s+Carrier",self.__dataPartition[2])[0].split(" ")[0]
+        #return re.findall(r"Transport\s?:\s?([A-Z\s]+)\s+Carrier",self.__dataPartition[2])[0].split(" ")[0]
+        return 'SEA'
 
     def __getSizeRange(self,currentSizes:str,newSizes:str=None)->str:
         """
