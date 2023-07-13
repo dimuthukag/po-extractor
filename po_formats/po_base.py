@@ -5,11 +5,15 @@ class PO_BASE:
     """
         Base class for all the purchase order document types
     """
-    def __init__(self,poDocFilepath:str) -> None:
+    def __init__(self,poDocFilepath:str,poDocContent:list=None,scalingFactor:float=None) -> None:
         if not os.path.exists(poDocFilepath):
             raise FileNotFoundError
         self.__poDocFilepath = poDocFilepath
-        self.__poDoc = pypdfium2.PdfDocument(poDocFilepath)
+        self.__scalingFactor = scalingFactor
+        if poDocContent==None:
+            self.__poDoc = pypdfium2.PdfDocument(self.__poDocFilepath)
+        elif poDocContent!=None and type(poDocContent)==list:
+            self.__poDoc = poDocContent
 
     def numPages(self) -> int:
         """
@@ -22,5 +26,20 @@ class PO_BASE:
             Returns a specific page of the purchase order document
         """
         if type(pageNumber)==int and pageNumber>=0 and pageNumber<=self.numPages():
-            return self.__poDoc[pageNumber-1].get_textpage().get_text_range()
+            try:
+                return self.__poDoc[pageNumber-1].get_textpage().get_text_range()
+            except AttributeError:
+                return self.__poDoc[pageNumber-1]
         return None
+    
+    def poDocFilepath(self)->str:
+        """
+            Returns the absolute filepath of po file
+        """
+        return self.__poDocFilepath
+    
+    def scallingFactor(self)->float|None:
+        """
+            Returns the scaling factor used for a image based po file
+        """
+        return self.__scalingFactor

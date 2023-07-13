@@ -186,12 +186,12 @@ class PO_TYPE_2(PO_BASE):
                 "n_packs":0,
                 "ship_date":shipDate,
                 "size_range":"",
-                "supplier_cost":supplierCost,
                 "packs_data":[{
                     'pack_sizes': packSizes,
                     'pack_colour': packColour,
                     'n_packs':None,
-                    'n_units':int(destQuantityList[index])
+                    'n_units':int(destQuantityList[index]),
+                    "supplier_cost":supplierCost
                 }]
             }
         return poDict

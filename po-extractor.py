@@ -5,7 +5,7 @@ import shutil
 from tkinter import Tk, Button, Text, font, END, filedialog
 from threading import Thread
 from openpyxl import load_workbook
-from po_formats import po_base, po_type_1, po_type_2
+from po_formats import text_extract, po_base, po_type_1, po_type_2, po_type_3
 
 class PO_Extractor:
     """
@@ -49,6 +49,7 @@ class PO_Extractor:
         """
         self.__createButton_selectDirectory()
         self.__createButton_extractData()
+        self.__createButton_saveLog()
         self.__createTextField_log()
 
     def __createButton_selectDirectory(self)->None:
@@ -62,7 +63,7 @@ class PO_Extractor:
             bg = self.__colors[0],
             fg = self.__colors[3],
             activebackground=self.__colors[1],
-            width=50,
+            width=44,
             relief='groove',
             command=self.__selectDirectory
             )
@@ -85,12 +86,29 @@ class PO_Extractor:
             bg = self.__colors[0],
             fg = self.__colors[3],
             activebackground=self.__colors[1],
-            width=50,
+            width=44,
             relief='groove',
             command=startThread
             )
         self.__buttonExtract.grid(
             row=0,column=1,
+            ipadx=10,ipady=10,
+            padx=10,pady=10)
+
+    def __createButton_saveLog(self)->None:
+        self.__buttonSaveLog = Button(
+            self.__root, 
+            text="Save Log",
+            font=self.__fonts[1],
+            bg = self.__colors[0],
+            fg = self.__colors[3],
+            activebackground=self.__colors[1],
+            width=8,
+            relief='groove',
+            command=self.__saveLog
+            )
+        self.__buttonSaveLog.grid(
+            row=0,column=2,
             ipadx=10,ipady=10,
             padx=10,pady=10)
 
@@ -109,7 +127,7 @@ class PO_Extractor:
             state='disabled'
             )
         self.__textFieldLog.grid(
-            row=1,column=0,columnspan=2,
+            row=1,column=0,columnspan=3,
             ipadx=10,ipady=10,
             padx=10,pady=10)
 
@@ -130,26 +148,32 @@ class PO_Extractor:
         self.__srcDir = filedialog.askdirectory()
         self.__loadFiles()
 
-    def __getPurchaseOrderFileType(self,poDocFilepath:str)->str:
+    def __getPurchaseOrderFileType(self,poDocFilepath:str)->list:
         """
             Returns the buyer type of the purchase order file
         """
         poDoc = po_base.PO_BASE(poDocFilepath)
         if "PRIMARK" in poDoc.getPage(1).upper():
-            return "TYPE-1"
+            return ["TYPE-1",None]
         elif "KMART" in poDoc.getPage(1).upper():
-            return "TYPE-2"
+            return ["TYPE-2",None]
+        elif poDoc.getPage(1).upper()=="": 
+            poDocContent = text_extract.extract(poDocFilepath,1,poDoc.numPages(),2.2)
+            if "WAREHOUSE" in poDocContent[0].upper():
+                return ["TYPE-3",poDocContent]
 
     def __extractData(self,poDocFilepath:str)->tuple:
         """
             Returns the extracted data
         """
-        poFileType = self.__getPurchaseOrderFileType(poDocFilepath)
+        [poFileType,poDocContent] = self.__getPurchaseOrderFileType(poDocFilepath)
         match poFileType:
             case "TYPE-1":
                 poDoc = po_type_1.PO_TYPE_1(poDocFilepath)
             case "TYPE-2":
                 poDoc = po_type_2.PO_TYPE_2(poDocFilepath)
+            case "TYPE-3":
+                poDoc = po_type_3.PO_TYPE_3(poDocFilepath,poDocContent,2.2)                
         (poDetails) = poDoc.output()
         return (poDetails, poFileType)
 
@@ -187,7 +211,7 @@ class PO_Extractor:
             Write extracted data to the standard excel format
         """
         try:
-            buyer = poDetails[0]["buyer"].split(" ")[0]
+            buyer = poDetails[0]["buyer"].replace("THE ","").split(" ")[0]
         except IndexError:
             buyer = "_"
 
@@ -222,17 +246,25 @@ class PO_Extractor:
                     worksheet[f'Z{maxRow}'].value = purchaseOrders[destNumber]['size_range']
                     worksheet[f'AA{maxRow}'].value = purchaseOrders[destNumber]['dest_num']
                     worksheet[f'AB{maxRow}'].value = poDetail['po_date']
+                    worksheet[f'AB{maxRow}'].value = poDetail['shipment_mode']
                     worksheet[f'AE{maxRow}'].value = purchaseOrders[destNumber]['dest']
 
                     worksheet[f'AF{maxRow}'].value = packData['pack_colour']
                     worksheet[f'AG{maxRow}'].value = packData['pack_sizes']
                     worksheet[f'AI{maxRow}'].value = packData['n_units']
-                    worksheet[f'AJ{maxRow}'].value = purchaseOrders[destNumber]['supplier_cost']
-                    if poFileType=="TYPE-2":
-                        worksheet[f'AK{maxRow}'].value = purchaseOrders[destNumber]['supplier_cost']                   
+                    worksheet[f'AJ{maxRow}'].value = packData['supplier_cost']
+                    if poFileType=="TYPE-2" or poFileType=="TYPE-3":
+                        worksheet[f'AK{maxRow}'].value = packData['supplier_cost']                   
                     maxRow +=1
         workbook.save(excelFile)
         workbook.close()
+
+    def __saveLog(self)->None:
+        os.makedirs("../../log",exist_ok=True)
+        log_filename = f'po-extractor log {datetime.datetime.now().strftime("%d-%m-%Y %H-%M-%S")} .txt'
+        with open(log_filename,'w') as log_file:
+            log_file.write(self.__textFieldLog.get("1.0",END))
+        self.__log(f'Log file saved to {os.getcwd()}')
 
     def __log(self, message:str)->None:
         """
