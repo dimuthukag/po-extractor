@@ -20,7 +20,8 @@ class PO_TYPE_4(PO_BASE):
         """
             Returns the buyer name 
         """
-        return re.findall(r".*PURCHASE\s+ORDER\s+\([A-Z]+\)\s+PAGE\s+[0-9]+\s+\n+\s+([A-Z\s]+)\s+ \s+",self.getPage(1))[0].strip()
+        #return re.findall(r".*PURCHASE\s+ORDER\s+\([A-Z]+\)\s+PAGE\s+[0-9]+\s+\n+\s+([A-Z\s]+)\s+ \s+",self.getPage(1))[0].strip()
+        return 'JUST GROUP LIMITED'
 
     def __company(self)->str:
         """
