@@ -1,11 +1,12 @@
 import os
+import re
 import glob
 import datetime
 import shutil
 from tkinter import Tk, Button, Text, font, END, filedialog
 from threading import Thread
 from openpyxl import load_workbook
-from po_formats import text_extract, po_base, po_type_1, po_type_2, po_type_3
+from po_formats import text_extract, po_base, po_type_1, po_type_2, po_type_3, po_type_4
 
 class PO_Extractor:
     """
@@ -157,6 +158,8 @@ class PO_Extractor:
             return ["TYPE-1",None]
         elif "KMART" in poDoc.getPage(1).upper():
             return ["TYPE-2",None]
+        elif "JUST GROUP" in poDoc.getPage(1).upper():
+            return ["TYPE-4",None]
         elif poDoc.getPage(1).upper()=="": 
             poDocContent = text_extract.extract(poDocFilepath,1,poDoc.numPages(),2.2)
             if "WAREHOUSE" in poDocContent[0].upper():
@@ -173,7 +176,9 @@ class PO_Extractor:
             case "TYPE-2":
                 poDoc = po_type_2.PO_TYPE_2(poDocFilepath)
             case "TYPE-3":
-                poDoc = po_type_3.PO_TYPE_3(poDocFilepath,poDocContent,2.2)                
+                poDoc = po_type_3.PO_TYPE_3(poDocFilepath,poDocContent,2.2)
+            case "TYPE-4":
+                poDoc = po_type_4.PO_TYPE_4(poDocFilepath)                
         (poDetails) = poDoc.output()
         return (poDetails, poFileType)
 
@@ -195,7 +200,7 @@ class PO_Extractor:
                 (poDetails, poFileType) = self.__extractData(poDoc)
                 self.__log(f"[{os.path.basename(poDoc)}] Extraction completed.")
                 self.__log(f"[{os.path.basename(poDoc)}] Writing data to excel.")
-                self.__writeData(poDetails, poFileType)
+                self.__writeData(poDoc,poDetails, poFileType)
                 self.__log(f"[{os.path.basename(poDoc)}] Writing data to excel completed.")
                 shutil.copy(poDoc,f"{self.__srcDir}/completed/")
                 self.__log(f"[{os.path.basename(poDoc)}] moved to ./completed.")
@@ -206,7 +211,7 @@ class PO_Extractor:
         self.__buttonSelect.configure(state='normal')
         self.__buttonExtract.configure(state='normal')
 
-    def __writeData(self,poDetails:list,poFileType:str)->None:
+    def __writeData(self,poDocFilepath:str,poDetails:list,poFileType:str)->None:
         """
             Write extracted data to the standard excel format
         """
@@ -214,6 +219,10 @@ class PO_Extractor:
             buyer = poDetails[0]["buyer"].replace("THE ","").split(" ")[0]
         except IndexError:
             buyer = "_"
+
+        if poFileType=="TYPE-4":
+            (dest,ver) = re.findall(r".*\(([A-Z\s]+)\)\s+([A-Z]+)\s+",os.path.basename(poDocFilepath).upper())[0]
+            buyer = buyer + "_" + dest.replace(" ","_") + "_" + ver
 
         excelFile = f'{self.__srcDir}/PO_{buyer}.xlsx'
         try:
@@ -245,6 +254,10 @@ class PO_Extractor:
                     worksheet[f'W{maxRow}'].value = poDetail['fabric']
                     worksheet[f'Z{maxRow}'].value = purchaseOrders[destNumber]['size_range']
                     worksheet[f'AA{maxRow}'].value = purchaseOrders[destNumber]['dest_num']
+                    if poFileType=="TYPE-1":
+                        worksheet[f'AA{maxRow}'].value = purchaseOrders[destNumber]['dest_num']
+                    else:
+                        worksheet[f'AA{maxRow}'].value = poDetail['po_num']
                     worksheet[f'AB{maxRow}'].value = poDetail['po_date']
                     worksheet[f'AB{maxRow}'].value = poDetail['shipment_mode']
                     worksheet[f'AE{maxRow}'].value = purchaseOrders[destNumber]['dest']
@@ -253,7 +266,7 @@ class PO_Extractor:
                     worksheet[f'AG{maxRow}'].value = packData['pack_sizes']
                     worksheet[f'AI{maxRow}'].value = packData['n_units']
                     worksheet[f'AJ{maxRow}'].value = packData['supplier_cost']
-                    if poFileType=="TYPE-2" or poFileType=="TYPE-3":
+                    if poFileType=="TYPE-2" or poFileType=="TYPE-3" or poFileType=="TYPE-4":
                         worksheet[f'AK{maxRow}'].value = packData['supplier_cost']                   
                     maxRow +=1
         workbook.save(excelFile)
