@@ -61,3 +61,10 @@ class PO_BASE:
             return currencySymbolDict[currency]
         except KeyError:
             return "-"
+    
+    def updatePoData(self,poDocContent:list)->None:
+        """
+            Update the existing po file content using given po file content
+        """
+        if type(poDocContent)==list:
+            self.__poDoc = poDocContent
