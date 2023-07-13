@@ -49,7 +49,7 @@ class PO_TYPE_2(PO_BASE):
         """
             Returns the purchase order date
         """
-        return datetime.strptime(re.findall(r"\s?DATE:\s?([0-9]+/[0-9]+/[0-9]+)",self.getPage(1))[0],"%d/%m/%y").strftime("%d-%b-%Y")
+        return datetime.strptime(re.findall(r"\s?DATE:\s?([0-9]+/[0-9]+/[0-9]+)",self.getPage(1))[0],"%d/%m/%y").strftime("%d-%b-%y")
 
     def __style(self,partitionNumber:int)->str:
         """
@@ -129,7 +129,7 @@ class PO_TYPE_2(PO_BASE):
         poDict = {}
 
         supplierCost = float(re.findall(r"COST\s+PER\s+UNIT\s?-\s?HOME\s+COST\s?:\s?([0-9\.]+)\s+",self.__dataPartition[partitionNumber])[0])
-        shipDate = datetime.strptime(re.findall(r"\s?DLV\s+CONS\s+DATE\s?:\s?([0-9]+/[0-9]+/[0-9]+)",self.getPage(1))[0],"%d/%m/%y").strftime("%d-%b-%Y")
+        shipDate = datetime.strptime(re.findall(r"\s?DLV\s+CONS\s+DATE\s?:\s?([0-9]+/[0-9]+/[0-9]+)",self.getPage(1))[0],"%d/%m/%y").strftime("%d-%b-%y")
 
         destList = re.findall(r"(.*)\nLOCN\s?:\s?QTY\s?",self.__dataPartition[partitionNumber])[0].strip().split(" ")
         destNumberList = re.findall(r"(\d+)\s?:\s?\d+",self.__dataPartition[partitionNumber])

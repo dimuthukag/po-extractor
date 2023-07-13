@@ -57,7 +57,7 @@ class PO_TYPE_1(PO_BASE):
         """
             Returns the purchase order date
         """
-        return  datetime.strptime(re.findall(r"Order\s+Date\s?:\s?(\d+)\s+",self.getPage(1))[0].strip(),"%Y%m%d").strftime("%d-%b-%Y")
+        return  datetime.strptime(re.findall(r"Order\s+Date\s?:\s?(\d+)\s+",self.getPage(1))[0].strip(),"%Y%m%d").strftime("%d-%b-%y")
 
     def __kimball(self)->int:
         """
@@ -191,7 +191,7 @@ class PO_TYPE_1(PO_BASE):
                             "dest_num":rawDestData[0],
                             "n_units":int(rawDestData[2]),
                             "n_packs":int(rawDestData[3]),
-                            "ship_date":datetime.strptime(shipdate,"%Y%m%d").strftime("%d-%b-%Y"),
+                            "ship_date":datetime.strptime(shipdate,"%Y%m%d").strftime("%d-%b-%y"),
                             "size_range":"",
                             "supplier_cost":None,
                             "packs_data":[]
