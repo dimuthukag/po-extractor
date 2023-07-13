@@ -37,7 +37,7 @@ class PO_TYPE_2(PO_BASE):
         """
             Returns the company name
         """
-        return re.findall(r"\s?SUPPLIER\s?\n\s?\d+\s+(.*)\s?\n",self.getPage(1))[0].strip().upper().split(" LTD ")[0] + " LTD"
+        return re.findall(r"\s?SUPPLIER\s?\n\s?\d+\s+(.*)\s?\n",self.getPage(1))[0].strip().upper().split(" LTD ")[0].replace(" INTL "," INTERNATIONAL ") + " LIMITED"
 
     def __poNumber(self)->int:
         """
