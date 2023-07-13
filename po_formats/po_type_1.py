@@ -39,7 +39,7 @@ class PO_TYPE_1(PO_BASE):
         """
             Returns the company name
         """
-        return re.findall(r"\nSupplier.*\n(.*)\n",self.getPage(1))[0].strip().upper()
+        return re.findall(r"\nSupplier.*\n(.*)\n",self.getPage(1))[0].strip().upper().replace(" LTD"," LIMITED")
 
     def __season(self)->str:
         """

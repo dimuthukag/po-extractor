@@ -13,9 +13,9 @@ class PO_TYPE_3(PO_BASE):
             Partitioning data into segments
         """
         partitions = {1:"",2:""}
-        for pageNumber in range(1,4):
+        for pageNumber in range(1,3):
             partitions[1] += self.getPage(pageNumber)
-        for pageNumber in range(4,self._num_pages()+1):
+        for pageNumber in range(3,self.numPages()+1):
             partitions[2] += self.getPage(pageNumber)
         return partitions
 
@@ -29,7 +29,7 @@ class PO_TYPE_3(PO_BASE):
         """
             Returns the company name
         """
-        return re.findall(r"To\s?:\s?(.*)\s+FOB",self.getPage(1))[0].strip().upper()
+        return re.findall(r"To\s?:\s?(.*)\s+FOB",self.getPage(1))[0].strip().upper() + "."
 
     def __season(self)->str:
         """
@@ -39,7 +39,7 @@ class PO_TYPE_3(PO_BASE):
             return re.findall(r"Season\s?:\s?([A-Z0-9]+)\n",self.getPage(3))[0].strip()
         except IndexError:
             try:
-                return re.findall(r"WK\s+Code\s?:\s?([0-9]+)\n",self.getPage(3))[0].strip()
+                return int(re.findall(r"WK\s+Code\s?:\s?([0-9]+)\n",self.getPage(3))[0].strip())
             except IndexError:
                 return ""
 
@@ -55,12 +55,22 @@ class PO_TYPE_3(PO_BASE):
         """
         return re.findall(r"SUPPLIER\s+REF\.?\s?:\s?([A-Z0-9\-\—]+)\s?",self.getPage(3))[0]
 
+    def __styleDescription(self)->str:
+        """
+            Returns the style description
+        """
+        componentsList = re.findall(r"\d+\-?\—?\d+\-?\—?\d+\s+\d+\s+\$?[\d\.]+([A-Z0-9\s&]+)\s+[A-Z/]+\s+[0-9]*[SMXL]*\s+[A-Z0-9]*\s?\d+\.\d+",self.__dataPartition[2].replace("&",""))
+        try:
+            return componentsList[0].strip()
+        except IndexError:
+            return re.findall(r"\d+\-?\—?\d+\-?\—?\d+\s+\d+\s+\$?[\d\.]+([A-Z0-9\s&]+)\s+[A-Z/]+\s+[0-9]*[SMXL]*\s?[A-Z0-9]*\s?\d+\.\d+",self.__dataPartition[2].replace("&",""))[0].strip()
+
     def __totalQuantity(self)->int:
         """
             Returns the total quantity
         """
         try:
-            return int(re.findall(r"Total\s+Units\s+(\d+)\s+",self.__dataPartition[2].replace("Un1ts","Units"))[0])
+            return int(re.findall(r"Total\s+Units\s+(\d+)\s+",self.__dataPartition[2].replace("Un1ts","Units").replace(" Unlts "," Units "))[0])
         except IndexError:
             return int(re.findall(r"Total\s+(\d+)\s+",self.__dataPartition[2])[0])
 
@@ -74,13 +84,13 @@ class PO_TYPE_3(PO_BASE):
         """
             Returns the factory name
         """
-        return re.findall(r"Factory\s?:\s?(.*)\n",self.__dataPartition[1])[0].strip().upper()
+        return re.findall(r"Factory\s?:\s?(.*)\n",self.__dataPartition[2])[0].strip().upper()
 
     def __shipmentMode(self)->str:
         """
             Returns the shipment mode
         """
-        return re.findall(r"Transport\s?:\s?([A-Z\s]+)\s+Carrier",self.__dataPartition[1])[0]
+        return re.findall(r"Transport\s?:\s?([A-Z\s]+)\s+Carrier",self.__dataPartition[2])[0].split(" ")[0]
 
     def __getSizeRange(self,currentSizes:str,newSizes:str=None)->str:
         """
@@ -136,8 +146,8 @@ class PO_TYPE_3(PO_BASE):
             Returns the purchase orders details
         """
         poDict = {}
-        dest = re.findall(r"Arrival\s+Port\s?:\s?([A-Z]+)\s+",self.__dataPartition[1])[0]
-        shipdate = datetime.strptime(re.findall(r"Est\.?\s?time\s+Depart\s?:\s?.*\s+\d+\s+[A-Z]+\s+\d+\s+(\d+\s+[A-Z]+\s+\d+)",self.__dataPartition[1])[0] ,"%d %b %y").strftime("%d-%b-%y")
+        dest = re.findall(r"Arrival\s+Port\s?:\s?([A-Z]+)\s+",self.__dataPartition[2])[0]
+        shipdate = datetime.strptime(re.findall(r"Est\.?\s?time\s+Depart\s?:\s?.*\s+(\d+\s+[A-Z]+\s+\d+)\s+\d+\s+[A-Z]+\s+\d+",self.__dataPartition[2])[0] ,"%d %b %y").strftime("%d-%b-%y")
 
         #size correction
         def __sizeCorrection(data:str):
@@ -167,13 +177,32 @@ class PO_TYPE_3(PO_BASE):
 
         nPacksList = re.findall(r"BUYING\s+PACK\s+(\d+)\s+PACKS",data)
 
-        supplierCostBasedComponentData = {}
+        colourBasedComponentData = {}
         sizeRangeList =[]
 
         nTotal_1 = 0
 
         for index,nPack in enumerate(nPacksList):
             componentsList = re.findall(r"\d+\-?\—?\d+\-?\—?\d+\s+(\d+)\s+\$?[\d\.]+[A-Z0-9\s]+\s+([A-Z/]+)\s+([0-9]*[SMXL]*)\s+[A-Z0-9]*\s?(\d+\.\d+)",tempDataPartition[index].replace("&",""))
+            try:
+                first_component = componentsList[0]
+            except IndexError:
+                componentsList = re.findall(r"\d+\-?\—?\d+\-?\—?\d+\s+(\d+)\s+\$?[\d\.]+[A-Z0-9\s]+\s+([A-Z/]+)\s+([0-9]*[SMXL]*)\s?[A-Z0-9]*\s?(\d+\.\d+)",tempDataPartition[index].replace("&",""))
+
+            if componentsList[0][2]=="":
+                sizeRange=re.findall(r"\n\s?CAT\s?:\s?[0-9a-zA-Z\s]+\s+([0-9]*[SMXL]*)\—?([0-9]*[SMXL]*)\s?\n",self.__dataPartition[2].replace("Category","CAT"))[0]
+                minSize = __sizeCorrection(sizeRange[0])
+                maxSize = __sizeCorrection(sizeRange[1])
+                try:
+                    sizeRange = [str(size) for size in range(int(minSize),int(maxSize)+1)]
+                except ValueError:
+                    sizes = "6XS 5XS 4XS 3XS 2XS XS S M L XL 2XL 3XL 4XL 5XL 6XL"
+                    sizeRange = sizes.split(minSize)[1].split(maxSize)[0]
+                for index, component in enumerate(componentsList):
+                    current = list(componentsList[index])
+                    current[2] = sizeRange[index]
+                    componentsList[index]=tuple(current)
+
             for component in componentsList:
                 n=int(component[0])
                 colour=component[1]
@@ -181,41 +210,41 @@ class PO_TYPE_3(PO_BASE):
                 supplierCost = float(component[3])
                 sizeRangeList.append(size)
                 nTotal_1 += n*int(nPack)
-                if supplierCost not in supplierCostBasedComponentData.keys():
-                    colourBasedComponentData={}
-                    colourBasedComponentData[colour]={
+                if colour not in colourBasedComponentData.keys():
+                    supplierCostBasedComponentData={}
+                    supplierCostBasedComponentData[supplierCost]={
                         'pack_sizes': self.__getSizeRange(size),
                         'pack_colour': colour,
                         'n_packs':None,
                         'n_units':n*int(nPack),
                         "supplier_cost":supplierCost
                     }
-                    supplierCostBasedComponentData[supplierCost] = colourBasedComponentData
-                elif supplierCost in supplierCostBasedComponentData.keys():
-                    colourBasedComponentData = supplierCostBasedComponentData[supplierCost]
-                    if colour not in colourBasedComponentData.keys():
-                        colourBasedComponentData[colour]={
+                    colourBasedComponentData[colour] = supplierCostBasedComponentData
+                elif colour in colourBasedComponentData.keys():
+                    supplierCostBasedComponentData = colourBasedComponentData[colour]
+                    if supplierCost not in supplierCostBasedComponentData.keys():
+                        supplierCostBasedComponentData[supplierCost]={
                             'pack_sizes': self.__getSizeRange(size),
                             'pack_colour': colour,
                             'n_packs':None,
                             'n_units':n*int(nPack),
                             "supplier_cost":supplierCost
                         }
-                    elif colour in colourBasedComponentData.keys():
-                        current = colourBasedComponentData[colour]
-                        colourBasedComponentData[colour]={
+                    elif supplierCost in supplierCostBasedComponentData.keys():
+                        current = supplierCostBasedComponentData[supplierCost]
+                        supplierCostBasedComponentData[supplierCost]={
                             'pack_sizes': self.__getSizeRange(current['pack_sizes'],size),
                             'pack_colour': colour,
                             'n_packs':None,
                             'n_units':n*int(nPack) + current['n_units'],
                             "supplier_cost":supplierCost
                         }
-                    supplierCostBasedComponentData[supplierCost] = colourBasedComponentData
+                    colourBasedComponentData[colour] = supplierCostBasedComponentData
         scalingFactor = self.scallingFactor()
         while True:
             nTotal_2 = 0
             componentsList = re.findall(r"[A-Z0-9\-\—]+\s+(\d+)\s+\d+\s+\d+\s+[\d\.]+\s+[A-Z0-9]*\s?(\d+\.\d+)\s+[\d\.]+\s?\n\n?[\d\.]+\s+[\d\.]+\s?\n\n?[0-9\-\—]+\s+\$?[\d\.]+.*\s+([A-Z/]+)\s+([0-9]*[SMXL]*)\s+[0-9]+",data)
-            tempSupplierCostBasedComponentData = {}
+            tempColourBasedComponentData  = {}
 
             for component in componentsList:
                 n=int(component[0])
@@ -224,65 +253,65 @@ class PO_TYPE_3(PO_BASE):
                 size=component[3]
                 sizeRangeList.append(size)
                 nTotal_2 += n
-                if supplierCost not in tempSupplierCostBasedComponentData.keys():
-                    colourBasedComponentData={}
-                    colourBasedComponentData[colour]={
+                if colour not in tempColourBasedComponentData.keys():
+                    supplierCostBasedComponentData={}
+                    supplierCostBasedComponentData[supplierCost]={
                         'pack_sizes': self.__getSizeRange(size),
                         'pack_colour': colour,
                         'n_packs':None,
                         'n_units':n,
                         "supplier_cost":supplierCost
                     }
-                    tempSupplierCostBasedComponentData[supplierCost] = colourBasedComponentData
-                elif supplierCost in tempSupplierCostBasedComponentData.keys():
-                    colourBasedComponentData = tempSupplierCostBasedComponentData[supplierCost]
-                    if colour not in colourBasedComponentData.keys():
-                        colourBasedComponentData[colour]={
+                    tempColourBasedComponentData[colour] = supplierCostBasedComponentData
+                elif colour in tempColourBasedComponentData.keys():
+                    supplierCostBasedComponentData = tempColourBasedComponentData[colour]
+                    if supplierCost not in supplierCostBasedComponentData.keys():
+                        supplierCostBasedComponentData[supplierCost]={
                             'pack_sizes': self.__getSizeRange(size),
                             'pack_colour': colour,
                             'n_packs':None,
                             'n_units':n,
                             "supplier_cost":supplierCost
                         }
-                    elif colour in colourBasedComponentData.keys():
-                        current = colourBasedComponentData[colour]
-                        colourBasedComponentData[colour]={
+                    elif supplierCost in supplierCostBasedComponentData.keys():
+                        current = supplierCostBasedComponentData[supplierCost]
+                        supplierCostBasedComponentData[supplierCost]={
                             'pack_sizes': self.__getSizeRange(current['pack_sizes'],size),
                             'pack_colour': colour,
                             'n_packs':None,
                             'n_units':n + current['n_units'],
                             "supplier_cost":supplierCost
                         }
-                    tempSupplierCostBasedComponentData[supplierCost] = colourBasedComponentData
+                    tempColourBasedComponentData[colour] = supplierCostBasedComponentData
 
             if (nTotal_1+nTotal_2) == self.__totalQuantity():
-                for supplierCost in tempSupplierCostBasedComponentData.keys():
-                    if supplierCost not in supplierCostBasedComponentData.keys():
-                        supplierCostBasedComponentData[supplierCost] = tempSupplierCostBasedComponentData[supplierCost]
-                    elif supplierCost in supplierCostBasedComponentData.keys():
-                        for colour in tempSupplierCostBasedComponentData[supplierCost].keys():
-                            if colour not in supplierCostBasedComponentData[supplierCost].keys():
-                                supplierCostBasedComponentData[supplierCost][colour] = tempSupplierCostBasedComponentData[supplierCost][colour]
-                            elif colour in supplierCostBasedComponentData[supplierCost].keys():
-                                current = supplierCostBasedComponentData[supplierCost][colour]
-                                supplierCostBasedComponentData[supplierCost][colour] = {
-                                    'pack_sizes': self.__getSizeRange(current['pack_sizes'],tempSupplierCostBasedComponentData[supplierCost][colour]['pack_sizes'].replace(" - "," ")),
+                for colour in tempColourBasedComponentData.keys():
+                    if colour not in colourBasedComponentData.keys():
+                        colourBasedComponentData[colour] = tempColourBasedComponentData[colour]
+                    elif colour in colourBasedComponentData.keys():
+                        for supplierCost in tempColourBasedComponentData[colour].keys():
+                            if supplierCost not in colourBasedComponentData[colour].keys():
+                                colourBasedComponentData[colour][supplierCost] = tempColourBasedComponentData[colour][supplierCost]
+                            elif supplierCost in colourBasedComponentData[colour].keys():
+                                current = colourBasedComponentData[colour][supplierCost]
+                                colourBasedComponentData[colour][supplierCost] = {
+                                    'pack_sizes': self.__getSizeRange(current['pack_sizes'],tempColourBasedComponentData[colour][supplierCost]['pack_sizes'].replace(" - "," ")),
                                     'pack_colour': colour,
                                     'n_packs':None,
-                                    'n_units':tempSupplierCostBasedComponentData[supplierCost][colour]['n_units'] + current['n_units'],
+                                    'n_units':tempColourBasedComponentData[colour][supplierCost]['n_units'] + current['n_units'],
                                     "supplier_cost":supplierCost
                                 } 
                 break
             else:
                 scalingFactor += 0.01
-                pdf_content = extract(self.poDocFilepath(),4,self.numPages(),scalingFactor)
+                pdf_content = extract(self.poDocFilepath(),3,self.numPages(),scalingFactor)
 
                 data = __sizeCorrection("\n".join(pdf_content))
 
         packs_data = []
-        for supplierCost in supplierCostBasedComponentData.keys():
-            for colour in supplierCostBasedComponentData[supplierCost].keys():
-                packs_data.append(supplierCostBasedComponentData[supplierCost][colour])
+        for colour in colourBasedComponentData.keys():
+            for supplierCost in colourBasedComponentData[colour].keys():
+                packs_data.append(colourBasedComponentData[colour][supplierCost])
 
         poDict[0]={
             "dest":dest,
@@ -310,7 +339,7 @@ class PO_TYPE_3(PO_BASE):
             "season_year":"",
             "season":self.__season(),
             "style":self.__style(),
-            "style_desc":self.__style(),
+            "style_desc":self.__styleDescription(),
             "gmt_item":"",
             "uom":"",
             "ratio":"",
