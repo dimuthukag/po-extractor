@@ -11,7 +11,13 @@ class PO_BASE:
         self.__poDocFilepath = poDocFilepath
         self.__scalingFactor = scalingFactor
         if poDocContent==None:
-            self.__poDoc = pypdfium2.PdfDocument(self.__poDocFilepath)
+            if os.path.basename(self.__poDocFilepath).upper().endswith(".PDF"):
+                self.__poDoc = pypdfium2.PdfDocument(self.__poDocFilepath)
+            elif os.path.basename(self.__poDocFilepath).upper().endswith(".TXT"):
+                poDocContent = ""
+                with open(self.__poDocFilepath,'r') as poFile:
+                    poDocContent = poFile.read()
+                self.__poDoc = [poDocContent]
         elif poDocContent!=None and type(poDocContent)==list:
             self.__poDoc = poDocContent
 
@@ -55,3 +61,10 @@ class PO_BASE:
             return currencySymbolDict[currency]
         except KeyError:
             return "-"
+    
+    def updatePoData(self,poDocContent:list)->None:
+        """
+            Update the existing po file content using given po file content
+        """
+        if type(poDocContent)==list:
+            self.__poDoc = poDocContent

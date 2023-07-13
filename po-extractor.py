@@ -1,11 +1,12 @@
 import os
+import re
 import glob
 import datetime
 import shutil
 from tkinter import Tk, Button, Text, font, END, filedialog
 from threading import Thread
 from openpyxl import load_workbook
-from po_formats import text_extract, po_base, po_type_1, po_type_2, po_type_3
+from po_formats import text_extract, po_base, po_type_1, po_type_2, po_type_3, po_type_4
 
 class PO_Extractor:
     """
@@ -135,7 +136,7 @@ class PO_Extractor:
         """
             Load purchase order documents from default/selected directory
         """
-        self.__poFilesList = glob.glob(self.__srcDir + "/*.pdf")
+        self.__poFilesList = glob.glob(self.__srcDir + "/*.pdf") + glob.glob(self.__srcDir + "/*.txt")
         if len(self.__poFilesList)==0:
             self.__log(f"No pdf files found from directory {self.__srcDir}.")
         else:
@@ -157,6 +158,8 @@ class PO_Extractor:
             return ["TYPE-1",None]
         elif "KMART" in poDoc.getPage(1).upper():
             return ["TYPE-2",None]
+        elif "JUST GROUP" in poDoc.getPage(1).upper():
+            return ["TYPE-4",None]
         elif poDoc.getPage(1).upper()=="": 
             poDocContent = text_extract.extract(poDocFilepath,1,poDoc.numPages(),2.2)
             if "WAREHOUSE" in poDocContent[0].upper():
@@ -173,7 +176,9 @@ class PO_Extractor:
             case "TYPE-2":
                 poDoc = po_type_2.PO_TYPE_2(poDocFilepath)
             case "TYPE-3":
-                poDoc = po_type_3.PO_TYPE_3(poDocFilepath,poDocContent,2.2)                
+                poDoc = po_type_3.PO_TYPE_3(poDocFilepath,poDocContent,2.2)
+            case "TYPE-4":
+                poDoc = po_type_4.PO_TYPE_4(poDocFilepath)                
         (poDetails) = poDoc.output()
         return (poDetails, poFileType)
 
@@ -245,6 +250,10 @@ class PO_Extractor:
                     worksheet[f'W{maxRow}'].value = poDetail['fabric']
                     worksheet[f'Z{maxRow}'].value = purchaseOrders[destNumber]['size_range']
                     worksheet[f'AA{maxRow}'].value = purchaseOrders[destNumber]['dest_num']
+                    if poFileType=="TYPE-1":
+                        worksheet[f'AA{maxRow}'].value = purchaseOrders[destNumber]['dest_num']
+                    else:
+                        worksheet[f'AA{maxRow}'].value = poDetail['po_num']
                     worksheet[f'AB{maxRow}'].value = poDetail['po_date']
                     worksheet[f'AB{maxRow}'].value = poDetail['shipment_mode']
                     worksheet[f'AE{maxRow}'].value = purchaseOrders[destNumber]['dest']
@@ -253,7 +262,7 @@ class PO_Extractor:
                     worksheet[f'AG{maxRow}'].value = packData['pack_sizes']
                     worksheet[f'AI{maxRow}'].value = packData['n_units']
                     worksheet[f'AJ{maxRow}'].value = packData['supplier_cost']
-                    if poFileType=="TYPE-2" or poFileType=="TYPE-3":
+                    if poFileType=="TYPE-2" or poFileType=="TYPE-3" or poFileType=="TYPE-4":
                         worksheet[f'AK{maxRow}'].value = packData['supplier_cost']                   
                     maxRow +=1
         workbook.save(excelFile)

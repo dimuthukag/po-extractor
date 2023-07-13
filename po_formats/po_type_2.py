@@ -37,7 +37,7 @@ class PO_TYPE_2(PO_BASE):
         """
             Returns the company name
         """
-        return re.findall(r"\s?SUPPLIER\s?\n\s?\d+\s+(.*)\s?\n",self.getPage(1))[0].strip().upper().split(" LTD ")[0] + " LTD"
+        return re.findall(r"\s?SUPPLIER\s?\n\s?\d+\s+(.*)\s?\n",self.getPage(1))[0].strip().upper().split(" LTD ")[0].replace(" INTL "," INTERNATIONAL ") + " LIMITED"
 
     def __poNumber(self)->int:
         """
@@ -181,7 +181,7 @@ class PO_TYPE_2(PO_BASE):
         for index, destNumber in enumerate(destNumberList):
             poDict[destNumber]={
                 "dest":destList[index],
-                "dest_num":self.__poNumber(),
+                "dest_num":destNumber,
                 "n_units":self.__totalQuantity(partitionNumber),
                 "n_packs":0,
                 "ship_date":shipDate,
@@ -244,7 +244,7 @@ class PO_TYPE_2(PO_BASE):
                 "po_num":self.__poNumber(),
                 "po_date":self.__poDate(),
                 "po_status":"",
-                "shipment_mode":"",
+                "shipment_mode":"SEA",
                 "purchase_orders":partitionBasedDestDict[partitionNumber]
             }
             poDetails.append(poDetail)
