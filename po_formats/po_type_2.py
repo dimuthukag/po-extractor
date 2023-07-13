@@ -181,7 +181,7 @@ class PO_TYPE_2(PO_BASE):
         for index, destNumber in enumerate(destNumberList):
             poDict[destNumber]={
                 "dest":destList[index],
-                "dest_num":self.__poNumber(),
+                "dest_num":destNumber,
                 "n_units":self.__totalQuantity(partitionNumber),
                 "n_packs":0,
                 "ship_date":shipDate,

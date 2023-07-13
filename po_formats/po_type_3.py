@@ -315,7 +315,7 @@ class PO_TYPE_3(PO_BASE):
 
         poDict[0]={
             "dest":dest,
-            "dest_num":self.__poNumber(),
+            "dest_num":0,
             "n_units":self.__totalQuantity(),
             "n_packs":0,
             "ship_date":shipdate,
