@@ -29,7 +29,7 @@ class PO_TYPE_3(PO_BASE):
         """
             Returns the company name
         """
-        return re.findall(r"To\s?:\s?(.*)\s+FOB",self.getPage(1))[0].strip().upper()
+        return re.findall(r"To\s?:\s?(.*)\s+FOB",self.getPage(1))[0].strip().upper() + "."
 
     def __season(self)->str:
         """
