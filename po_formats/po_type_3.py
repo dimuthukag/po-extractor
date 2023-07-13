@@ -80,7 +80,7 @@ class PO_TYPE_3(PO_BASE):
         """
             Returns the shipment mode
         """
-        return re.findall(r"Transport\s?:\s?([A-Z\s]+)\s+Carrier",self.__dataPartition[2])[0]
+        return re.findall(r"Transport\s?:\s?([A-Z\s]+)\s+Carrier",self.__dataPartition[2])[0].split(" ")[0]
 
     def __getSizeRange(self,currentSizes:str,newSizes:str=None)->str:
         """
@@ -137,7 +137,7 @@ class PO_TYPE_3(PO_BASE):
         """
         poDict = {}
         dest = re.findall(r"Arrival\s+Port\s?:\s?([A-Z]+)\s+",self.__dataPartition[2])[0]
-        shipdate = datetime.strptime(re.findall(r"Est\.?\s?time\s+Depart\s?:\s?.*\s+\d+\s+[A-Z]+\s+\d+\s+(\d+\s+[A-Z]+\s+\d+)",self.__dataPartition[2])[0] ,"%d %b %y").strftime("%d-%b-%y")
+        shipdate = datetime.strptime(re.findall(r"Est\.?\s?time\s+Depart\s?:\s?.*\s+(\d+\s+[A-Z]+\s+\d+)\s+\d+\s+[A-Z]+\s+\d+",self.__dataPartition[2])[0] ,"%d %b %y").strftime("%d-%b-%y")
 
         #size correction
         def __sizeCorrection(data:str):
