@@ -31,3 +31,15 @@ class PO_BASE:
             except AttributeError:
                 return self.__poDoc[pageNumber-1]
         return None
+    
+    def poDocFilepath(self)->str:
+        """
+            Returns the absolute filepath of po file
+        """
+        return self.__poDocFilepath
+    
+    def scallingFactor(self)->float|None:
+        """
+            Returns the scaling factor used for a image based po file
+        """
+        return self.__scalingFactor
