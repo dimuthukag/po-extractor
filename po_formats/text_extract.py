@@ -8,7 +8,7 @@ def extract(pdfFilepath:str,fromPage:int,toPage:int,scalingFactor:float)->list:
         Returns a list of page content extracted from a image based pdf
     """
     pdfContent= []
-    os.makedirs("../../temp",exist_ok=True)
+    os.makedirs(f"{os.path.dirname(pdfFilepath)}/temp",exist_ok=True)
     try:
         pages = pdf2image.pdf2image.convert_from_path(pdfFilepath,500,poppler_path=r"./poppler-0.68.0/bin")
     except pdf2image.exceptions.PDFInfoNotInstalledError:
@@ -20,7 +20,7 @@ def extract(pdfFilepath:str,fromPage:int,toPage:int,scalingFactor:float)->list:
         pytesseract.pytesseract.tesseract_cmd = r"../Tesseract-OCR/tesseract.exe"
 
     for pageNumber in range(fromPage,toPage+1):
-        tempImageFilepath = f'../../temp/{os.path.basename(pdfFilepath)} - {pageNumber}.jpeg'
+        tempImageFilepath = f'{os.path.dirname(pdfFilepath)}/temp/{os.path.basename(pdfFilepath)} - {pageNumber}.jpeg'
         pages[pageNumber-1].save(tempImageFilepath, 'JPEG')
 
         tempImage = cv2.imread(tempImageFilepath)
@@ -29,5 +29,5 @@ def extract(pdfFilepath:str,fromPage:int,toPage:int,scalingFactor:float)->list:
         pageText = pytesseract.image_to_string(tempImage)
         pdfContent.append(pageText)
         os.remove(tempImageFilepath)
-    os.removedirs("../../temp")
+    os.removedirs(f"{os.path.dirname(pdfFilepath)}/temp")
     return pdfContent
