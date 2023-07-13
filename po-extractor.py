@@ -6,7 +6,7 @@ import shutil
 from tkinter import Tk, Button, Text, font, END, filedialog
 from threading import Thread
 from openpyxl import load_workbook
-from po_formats import text_extract, po_base, po_type_1, po_type_2, po_type_3, po_type_4
+from po_formats import text_extract, po_base, po_type_1, po_type_2, po_type_3, po_type_4, po_type_5
 
 class PO_Extractor:
     """
@@ -160,6 +160,8 @@ class PO_Extractor:
             return ["TYPE-2",None]
         elif "JUST GROUP" in poDoc.getPage(1).upper():
             return ["TYPE-4",None]
+        elif "SALLING GROUP" in poDoc.getPage(1).upper():
+            return ["TYPE-5",None]
         elif poDoc.getPage(1).upper()=="": 
             poDocContent = text_extract.extract(poDocFilepath,1,poDoc.numPages(),2.2)
             if "WAREHOUSE" in poDocContent[0].upper():
@@ -178,7 +180,9 @@ class PO_Extractor:
             case "TYPE-3":
                 poDoc = po_type_3.PO_TYPE_3(poDocFilepath,poDocContent,2.2)
             case "TYPE-4":
-                poDoc = po_type_4.PO_TYPE_4(poDocFilepath)                
+                poDoc = po_type_4.PO_TYPE_4(poDocFilepath)
+            case "TYPE-5":
+                poDoc = po_type_5.PO_TYPE_5(poDocFilepath)                          
         (poDetails) = poDoc.output()
         return (poDetails, poFileType)
 
@@ -262,7 +266,7 @@ class PO_Extractor:
                     worksheet[f'AG{maxRow}'].value = packData['pack_sizes']
                     worksheet[f'AI{maxRow}'].value = packData['n_units']
                     worksheet[f'AJ{maxRow}'].value = packData['supplier_cost']
-                    if poFileType=="TYPE-2" or poFileType=="TYPE-3" or poFileType=="TYPE-4":
+                    if poFileType=="TYPE-2" or poFileType=="TYPE-3" or poFileType=="TYPE-4" or poFileType=="TYPE-5":
                         worksheet[f'AK{maxRow}'].value = packData['supplier_cost']                   
                     maxRow +=1
         workbook.save(excelFile)
