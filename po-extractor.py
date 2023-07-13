@@ -240,6 +240,7 @@ class PO_Extractor:
         """
         self.__textFieldLog.configure(state='normal')
         self.__textFieldLog.insert(END,f'{datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")} | {message}\n')
+        self.__textFieldLog.see(END) #auto scroll text field to the end
         self.__textFieldLog.configure(state='disabled')
 
     def run(self)->None:
