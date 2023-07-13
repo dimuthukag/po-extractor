@@ -200,7 +200,7 @@ class PO_Extractor:
                 (poDetails, poFileType) = self.__extractData(poDoc)
                 self.__log(f"[{os.path.basename(poDoc)}] Extraction completed.")
                 self.__log(f"[{os.path.basename(poDoc)}] Writing data to excel.")
-                self.__writeData(poDoc,poDetails, poFileType)
+                self.__writeData(poDetails, poFileType)
                 self.__log(f"[{os.path.basename(poDoc)}] Writing data to excel completed.")
                 shutil.copy(poDoc,f"{self.__srcDir}/completed/")
                 self.__log(f"[{os.path.basename(poDoc)}] moved to ./completed.")
@@ -211,7 +211,7 @@ class PO_Extractor:
         self.__buttonSelect.configure(state='normal')
         self.__buttonExtract.configure(state='normal')
 
-    def __writeData(self,poDocFilepath:str,poDetails:list,poFileType:str)->None:
+    def __writeData(self,poDetails:list,poFileType:str)->None:
         """
             Write extracted data to the standard excel format
         """
@@ -219,10 +219,6 @@ class PO_Extractor:
             buyer = poDetails[0]["buyer"].replace("THE ","").split(" ")[0]
         except IndexError:
             buyer = "_"
-
-        if poFileType=="TYPE-4":
-            (dest,ver) = re.findall(r".*\(([A-Z\s]+)\)\s+([A-Z]+)\s+",os.path.basename(poDocFilepath).upper())[0]
-            buyer = buyer + "_" + dest.replace(" ","_") + "_" + ver
 
         excelFile = f'{self.__srcDir}/PO_{buyer}.xlsx'
         try:

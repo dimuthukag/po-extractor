@@ -38,13 +38,19 @@ class PO_TYPE_4(PO_BASE):
         """
             Returns the purchase order date
         """
-        return datetime.strptime(re.findall(r"PRINT\s+DATE\s?:\s?(\d+/\d+/\d+)\s+",self.getPage(1))[0].strip(),"%d/%m/%y").strftime("%d-%b-%y")
+        return datetime.strptime(re.findall(r"PRINT\s+DATE\s?:\s+(\d+/\d+/\d+)\s+",self.getPage(1))[0].strip(),"%d/%m/%y").strftime("%d-%b-%y")
 
     def __style(self)->str:
         """
             Returns the style
         """
         return re.findall(r"\s+LINE\s?:\s?([0-9]+)\s+",self.getPage(1))[0]
+
+    def __styleDescription(self)->str:
+        """
+            Returns the style description
+        """
+        return re.findall(r"\s+DESCRIPTION\s?:\s?(.*)\n",self._get_page(self._num_pages()).upper())[0].strip()
 
     def __totalQuantity(self)->int:
         """
@@ -62,8 +68,11 @@ class PO_TYPE_4(PO_BASE):
         """
             Returns the shipment mode
         """
-        return re.findall(r"\s?INSTRUCTIONS\s?:\s?FOB\s?[A-Z]+\s+\$?[\d\.]+\s+ETD\s+[0-9/]+\s+ETA\s+[0-9/]+\s+([A-Z]+)\s+",self.getPage(self.numPages()).upper())[0]
-
+        try:
+            return re.findall(r"\s?INSTRUCTIONS\s?:\s?FOB\s?[A-Z]+\s+\$?[\d\.]+\s+ETD\s+[0-9/]+\s+ETA\s+[0-9/]+\s+([A-Z]+)\s+",self.getPage(self.numPages()).upper())[0]
+        except IndexError:
+            return ""
+        
     def __getSizeRange(self,currentSize:str,newSize:str=None)->str:
         """
             Returns the size range
@@ -99,7 +108,12 @@ class PO_TYPE_4(PO_BASE):
                 return f"{sortedSizeList[0][0]} - {sortedSizeList[-1][0]}"
 
         except KeyError:
-            return "-"
+            sizeList = [int(size) for size in sizeList]
+            sortedSizeList = sorted(sizeList)
+            if len(sortedSizeList)==1:
+                return f"{sortedSizeList[0]}"
+            elif len(sortedSizeList)>1:
+                return f"{sortedSizeList[0]} - {sortedSizeList[-1]}"
 
     def __purchaseOrders(self)->dict:
         """
@@ -108,8 +122,8 @@ class PO_TYPE_4(PO_BASE):
         poDict = {}
         countryCode = re.findall(r"\s+PURCHASE\s+ORDER\s+\(?([A-Z]+)\)?\s+PAGE\s+[0-9]+",self.getPage(1))[0][:2]
         dest = pycountry.countries.get(alpha_2=countryCode).name.upper()
-        shipdate = datetime.strptime(re.findall(r"\s?INSTRUCTIONS\s?:\s?.*\s+ETD\s+(\d+/\d+)\s+",self.getPage(1))[0].strip(),"%d/%m").strftime("%d-%b") + "-" +self.__poDate().split("-")[-1]
-        supplierCost = float(re.findall(r"\s?INSTRUCTIONS\s?:\s?FOB\s?[A-Z]+\s+\$?([\d\.]+)\s+ETD\s+[0-9/]+\s+ETA\s+[0-9/]+\s+[A-Z]+\s+",self.getPage(self.numPages()).upper())[0])
+        shipdate = datetime.strptime(re.findall(r"\s?INSTRUCTIONS\s?:\s?.*\s+ETD\s+(\d+/\d+)\s*",self.getPage(1))[0].strip(),"%d/%m").strftime("%d-%b") + "-" +self.__poDate().split("-")[-1]
+        supplierCost = float(re.findall(r"\s?INSTRUCTIONS\s?:\s?FOB\s?[A-Z]+\s+\$?([\d\.]+)\s+",self.getPage(self.numPages()).upper())[0])
         sizes = re.findall("COLOUR\s+DESC([0-9SMXL\s]+)\s+TOTAL\s?",self.getPage(self.numPages()).upper())[0]
         # size correction
 
@@ -124,12 +138,12 @@ class PO_TYPE_4(PO_BASE):
         sizeList = list(filter(None,sizes.split(" ")))
         sizeRange = self.__getSizeRange(" - ".join(sizeList))
 
-        colourBasedPackData = re.findall(r"TOTAL\s+([0-9A-Z\s]+)\n\s+TOTAL",self.getPage(self.numPages()).upper())[0]
-        colourBasedPackData = re.findall(r"\s?([0-9]*\s?[A-Z]+)\s+[0-9\s]*\s+([0-9]+)\s+\n",colourBasedPackData)
+        colourBasedPackData = re.findall(r"TOTAL\s+([0-9A-Z\s/]+)\n\s+TOTAL",self.getPage(self.numPages()).upper())[0]
+        colourBasedPackData = re.findall(r"\s?([0-9]*\s?[A-Z\s]+)\s+[0-9\s]*\s+([0-9]+)\s+\n",colourBasedPackData)
 
         packsData = []
         for eachPo in colourBasedPackData:
-            colour = eachPo[0]
+            colour = eachPo[0].strip()
             n = int(eachPo[1])
             packData = {
                 'pack_sizes': sizeRange,
@@ -167,7 +181,7 @@ class PO_TYPE_4(PO_BASE):
             "season_year":"",
             "season":"",
             "style":self.__style(),
-            "style_desc":"",
+            "style_desc":self.__styleDescription(),
             "gmt_item":"",
             "uom":"",
             "ratio":"",
