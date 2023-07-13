@@ -234,7 +234,7 @@ class PO_Extractor:
             for destNumber in purchaseOrders.keys():
                 packsData = purchaseOrders[destNumber]['packs_data']
                 for packData in packsData:
-                    worksheet[f'D{maxRow}'].value = poDetail['company']
+                    worksheet[f'D{maxRow}'].value = "CENTRO INTERNATIONAL SOURCING LIMITED" #poDetail['company']
                     worksheet[f'E{maxRow}'].value = poDetail['consignee']
                     worksheet[f'F{maxRow}'].value = poDetail['buyer']
                     worksheet[f'I{maxRow}'].value = poDetail['season_year']
