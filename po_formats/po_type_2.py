@@ -79,7 +79,7 @@ class PO_TYPE_2(PO_BASE):
         """
             Returns the currency type
         """
-        return re.findall(r"\s+CURRENCY\s?:\s?([A-Z]+)\s?",self.__dataPartition[partitionNumber])[0]
+        return self.getCurrencySymbol(re.findall(r"\s+CURRENCY\s?:\s?([A-Z]+)\s?",self.__dataPartition[partitionNumber])[0])
 
     def __getSizeRange(self,currentSizes:str,newSizes:str=None)->str:
         """
