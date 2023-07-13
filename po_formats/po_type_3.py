@@ -15,7 +15,7 @@ class PO_TYPE_3(PO_BASE):
         partitions = {1:"",2:""}
         for pageNumber in range(1,3):
             partitions[1] += self.getPage(pageNumber)
-        for pageNumber in range(3,self._num_pages()+1):
+        for pageNumber in range(3,self.numPages()+1):
             partitions[2] += self.getPage(pageNumber)
         return partitions
 
@@ -54,6 +54,16 @@ class PO_TYPE_3(PO_BASE):
             Returns the style
         """
         return re.findall(r"SUPPLIER\s+REF\.?\s?:\s?([A-Z0-9\-\—]+)\s?",self.getPage(3))[0]
+
+    def __styleDescription(self)->str:
+        """
+            Returns the style description
+        """
+        componentsList = re.findall(r"\d+\-?\—?\d+\-?\—?\d+\s+\d+\s+\$?[\d\.]+([A-Z0-9\s&]+)\s+[A-Z/]+\s+[0-9]*[SMXL]*\s+[A-Z0-9]*\s?\d+\.\d+",self.__dataPartition[2].replace("&",""))
+        try:
+            return componentsList[0].strip()
+        except IndexError:
+            return re.findall(r"\d+\-?\—?\d+\-?\—?\d+\s+\d+\s+\$?[\d\.]+([A-Z0-9\s&]+)\s+[A-Z/]+\s+[0-9]*[SMXL]*\s?[A-Z0-9]*\s?\d+\.\d+",self.__dataPartition[2].replace("&",""))[0].strip()
 
     def __totalQuantity(self)->int:
         """
@@ -180,7 +190,7 @@ class PO_TYPE_3(PO_BASE):
                 componentsList = re.findall(r"\d+\-?\—?\d+\-?\—?\d+\s+(\d+)\s+\$?[\d\.]+[A-Z0-9\s]+\s+([A-Z/]+)\s+([0-9]*[SMXL]*)\s?[A-Z0-9]*\s?(\d+\.\d+)",tempDataPartition[index].replace("&",""))
 
             if componentsList[0][2]=="":
-                sizeRange=re.findall(r"\n\s?CAT\s?:\s?[0-9a-zA-Z\s]+\s+([0-9]*[SMXL]*)\—?([0-9]*[SMXL]*)\s?\n",self.__data_partition[2])[0]
+                sizeRange=re.findall(r"\n\s?CAT\s?:\s?[0-9a-zA-Z\s]+\s+([0-9]*[SMXL]*)\—?([0-9]*[SMXL]*)\s?\n",self.__dataPartition[2].replace("Category","CAT"))[0]
                 minSize = __sizeCorrection(sizeRange[0])
                 maxSize = __sizeCorrection(sizeRange[1])
                 try:
@@ -285,7 +295,7 @@ class PO_TYPE_3(PO_BASE):
                             elif supplierCost in colourBasedComponentData[colour].keys():
                                 current = colourBasedComponentData[colour][supplierCost]
                                 colourBasedComponentData[colour][supplierCost] = {
-                                    'pack_sizes': self.__format_pack_size(current['pack_sizes'],tempColourBasedComponentData[colour][supplierCost]['pack_sizes'].replace(" - "," ")),
+                                    'pack_sizes': self.__getSizeRange(current['pack_sizes'],tempColourBasedComponentData[colour][supplierCost]['pack_sizes'].replace(" - "," ")),
                                     'pack_colour': colour,
                                     'n_packs':None,
                                     'n_units':tempColourBasedComponentData[colour][supplierCost]['n_units'] + current['n_units'],
@@ -329,7 +339,7 @@ class PO_TYPE_3(PO_BASE):
             "season_year":"",
             "season":self.__season(),
             "style":self.__style(),
-            "style_desc":self.__style(),
+            "style_desc":self.__styleDescription(),
             "gmt_item":"",
             "uom":"",
             "ratio":"",
