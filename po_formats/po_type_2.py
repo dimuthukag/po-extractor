@@ -31,7 +31,8 @@ class PO_TYPE_2(PO_BASE):
         """
             Returns the buyer name 
         """
-        return re.findall(r"(.*)\s+[A-Z]+-[A-Z\s]*\s?PORT\s+SPLIT",self.getPage(1))[0].strip().upper()
+        #return re.findall(r"(.*)\s+[A-Z]+-[A-Z\s]*\s?PORT\s+SPLIT",self.getPage(1))[0].strip().upper()
+        return 'KMART AUSTRALIA LIMITED'
 
     def __company(self)->str:
         """
