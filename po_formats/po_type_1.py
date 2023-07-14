@@ -57,7 +57,15 @@ class PO_TYPE_1(PO_BASE):
         """
             Returns the purchase order date
         """
-        return  datetime.strptime(re.findall(r"Order\s+Date\s?:\s?(\d+)\s+",self.getPage(1))[0].strip(),"%Y%m%d").strftime("%d-%b-%y")
+        try:
+            (_y,_m,_d) = re.findall(r"Order\s+Date\s?:\s?(\d{2,4})[\.,/\\,\-_\s]{0,3}(\d{1,2})[\.,/\\,\-_\s]{0,3}(\d{1,2})\s+",self.getPage(1))[0]
+        except IndexError:
+            (_d,_m,_y) = re.findall(r"Order\s+Date\s?:\s?(\d{0,2})[\.,/\\,\-_\s]{0,3}(\d{1,2})[\.,/\\,\-_\s]{0,3}(\d{2,4})\s+",self.getPage(1))[0]
+        
+        try:
+            return datetime.strptime(f"{_d}-{_m}-{_y[-2:]}","%d-%m-%y").strftime("%d-%b-%y")
+        except IndexError:
+            return 'DATE_ERROR'
 
     def __kimball(self)->int:
         """
@@ -179,9 +187,12 @@ class PO_TYPE_1(PO_BASE):
             "Z":"UNITED KINGDOM",
             "F":"USA",
         } 
-        shipdatesList =  re.findall(r"HANDOVER\s+DATE\s?:\s?(\d+)\s+",self.__dataPartition[1])
-
+        shipdatesList =  re.findall(r"HANDOVER\s+DATE\s?:\s?([\d\s\.\-\/,]+)\s+",self.__dataPartition[1])
         for index, shipdate in enumerate(shipdatesList):
+            try:
+                (_y,_m,_d) = re.findall(r'(\d{4})[\s\.\-\/,]{0,3}(\d{1,2})[\s\.\-\/,]{0,3}(\d{1,2})',shipdate)[0]
+            except IndexError:
+                (_d,_m,_y) = re.findall(r'(\d{1,2})[\s\.\-\/,]{0,3}(\d{1,2})[\s\.\-\/,]{0,3}(\d{4})',shipdate)[0]
             for item in self.__dataPartition[1].split("HANDOVER DATE")[-len(shipdatesList):][index].split("\n"):
                 try:
                     rawDestData = re.findall(r".*\s+([A-Z]{1}[0-9]{8})\s+(\d+)\s+(\d+)\s+(\d+)\r",item.replace(",",""))[0]
@@ -191,7 +202,7 @@ class PO_TYPE_1(PO_BASE):
                             "dest_num":rawDestData[0],
                             "n_units":int(rawDestData[2]),
                             "n_packs":int(rawDestData[3]),
-                            "ship_date":datetime.strptime(shipdate,"%Y%m%d").strftime("%d-%b-%y"),
+                            "ship_date":datetime.strptime(f"{_d}-{_m}-{_y[-2:]}","%d-%m-%y").strftime("%d-%b-%y"),
                             "size_range":"",
                             "packs_data":[]
                         }
