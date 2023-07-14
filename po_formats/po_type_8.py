@@ -80,9 +80,15 @@ class PO_TYPE_8(PO_BASE):
             _record = _records[record_index]
             return _record[1].replace("\n",' ').strip()
 
-    def __totalQuantity(self)->int:
+    def __totalQuantity(self,recordIndex:int)->int:
+        """
+            Returns the total quantity
+        """
         _records = self.__getRecords()
-        return sum([int(float(row[2])) for row in _records])
+        if recordIndex>=0 and recordIndex<len(_records):
+            _record = _records[recordIndex]
+            return int(float(_record[2]))
+        return None
 
     def __purchaseOrders(self,recordIndex:int)->dict:
         """
@@ -132,7 +138,7 @@ class PO_TYPE_8(PO_BASE):
                 "gmt_item":"",
                 "uom":"",
                 "ratio":"",
-                "total_qty":self.__totalQuantity(),
+                "total_qty":self.__totalQuantity(recordIndex),
                 "currency":self.__currency(),
                 "factory":"",
                 "fabric_src":"",
