@@ -103,7 +103,7 @@ class PO_TYPE_8(PO_BASE):
                 "packs_data":[
                     {
                         'pack_sizes': '',
-                        'pack_colour': '',
+                        'pack_colour': self.__style(recordIndex)[-2:],
                         'n_packs':None,
                         'n_units':int(float(record[2])),
                         "supplier_cost":float(record[3])
