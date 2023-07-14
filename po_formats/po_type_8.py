@@ -60,7 +60,7 @@ class PO_TYPE_8(PO_BASE):
 
     def __getRecords(self)->list[tuple]:
         _all_content = "".join([self.getPage(pageNumber) for pageNumber in range(1,self.numPages()+1)])
-        return re.findall(r"([0-9A-Z]+)\s?\-\s?([A-Z\s]+\n?[A-Z\s]*)\n?([\d\.]+)\s+([\d\.]+)\s+([\d,]+)",_all_content.upper())
+        return re.findall(r"([0-9A-Z]+)\s+\-\s+([A-Z\-\s]+\n?[A-Z\-\s]*)\n?([\d\.]+)\s+([\d\.]+)\s+([\d,]+)",_all_content.upper())
 
     def __style(self,record_index:int)->str:
         """
