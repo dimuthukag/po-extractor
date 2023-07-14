@@ -104,3 +104,11 @@ class PO_BASE:
             os.remove(tempSvgFilepath)
             os.removedirs(f"{os.path.dirname(self.poDocFilepath())}/temp")
             return _svg_content.decode('utf-8')
+    
+    def getPageByPyPDF2(self,pageNumber:int)->str:
+        """
+            Returns the content of a given page number of the PDF using PyPDF2 library
+        """
+        if type(pageNumber)==int and pageNumber>0 and pageNumber<=self.numPages():
+            return PdfReader(self.poDocFilepath()).pages[pageNumber-1].extract_text()
+        return None
