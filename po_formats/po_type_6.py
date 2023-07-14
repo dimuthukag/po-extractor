@@ -241,7 +241,7 @@ class PO_TYPE_6(PO_BASE):
                         "size_range":self.__getSizeRange(dataPartition),
                         "packs_data":[
                             {
-                                'pack_sizes': f"{self.__sizes(dataPartition)[0]}-{self.__sizes(dataPartition)[-1]}",
+                                'pack_sizes': self.__getSizeRange(dataPartition), #f"{self.__sizes(dataPartition)[0]}-{self.__sizes(dataPartition)[-1]}",
                                 'pack_colour': self.__colour(dataPartition),
                                 'n_packs':None,
                                 'n_units':self.__nTotal(dataPartition)[itt],
