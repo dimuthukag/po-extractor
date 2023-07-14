@@ -60,7 +60,7 @@ class PO_TYPE_8(PO_BASE):
 
     def __getRecords(self)->list[tuple]:
         _all_content = "".join([self.getPage(pageNumber) for pageNumber in range(1,self.numPages()+1)])
-        return re.findall(r"([0-9A-Z]+)\s?\-\s?([A-Z\s]+\n?[A-Z\s]*)\n?([\d\.]+)\s+([\d\.]+)\s+([\d,]+)",_all_content.upper())
+        return re.findall(r"([0-9A-Z]+)\s+\-\s+([A-Z\-\s]+\n?[A-Z\-\s]*)\n?([\d\.]+)\s+([\d\.]+)\s+([\d,]+)",_all_content.upper())
 
     def __style(self,record_index:int)->str:
         """
@@ -80,9 +80,15 @@ class PO_TYPE_8(PO_BASE):
             _record = _records[record_index]
             return _record[1].replace("\n",' ').strip()
 
-    def __totalQuantity(self)->int:
+    def __totalQuantity(self,recordIndex:int)->int:
+        """
+            Returns the total quantity
+        """
         _records = self.__getRecords()
-        return sum([int(float(row[2])) for row in _records])
+        if recordIndex>=0 and recordIndex<len(_records):
+            _record = _records[recordIndex]
+            return int(float(_record[2]))
+        return None
 
     def __purchaseOrders(self,recordIndex:int)->dict:
         """
@@ -103,7 +109,7 @@ class PO_TYPE_8(PO_BASE):
                 "packs_data":[
                     {
                         'pack_sizes': '',
-                        'pack_colour': '',
+                        'pack_colour': self.__style(recordIndex)[-2:],
                         'n_packs':None,
                         'n_units':int(float(record[2])),
                         "supplier_cost":float(record[3])
@@ -132,7 +138,7 @@ class PO_TYPE_8(PO_BASE):
                 "gmt_item":"",
                 "uom":"",
                 "ratio":"",
-                "total_qty":self.__totalQuantity(),
+                "total_qty":self.__totalQuantity(recordIndex),
                 "currency":self.__currency(),
                 "factory":"",
                 "fabric_src":"",
