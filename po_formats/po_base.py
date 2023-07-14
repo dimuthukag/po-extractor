@@ -1,5 +1,8 @@
 import os
+import re
 import pypdfium2
+from PyPDF2 import PdfReader
+import svgwrite
 
 class PO_BASE:
     """
@@ -68,3 +71,36 @@ class PO_BASE:
         """
         if type(poDocContent)==list:
             self.__poDoc = poDocContent
+
+    def getSvgData(self,pageNumber:int)->str:
+        """
+            Returns the svg data of a given page number of the PDF file
+        """
+        if type(pageNumber)==int and pageNumber>0 and pageNumber<=self.numPages():
+            os.makedirs(f"{os.path.dirname(self.poDocFilepath())}/temp",exist_ok=True)
+            reader = PdfReader(self.poDocFilepath())
+            page = reader.pages[pageNumber-1]
+
+            tempSvgFilepath = f"{os.path.dirname(self.poDocFilepath())}/temp/{os.path.basename(self.poDocFilepath()).replace('.PDF,','.svg')}"
+            dwg = svgwrite.Drawing(tempSvgFilepath, profile="tiny")
+
+            def visitor_svg_rect(op, args, cm, tm):
+                if op == b"re":
+                    (x, y, w, h) = (args[i].as_numeric() for i in range(4))
+                    dwg.add(dwg.rect((x, y), (w, h), stroke="red", fill_opacity=0.05))
+
+            def visitor_svg_text(text, cm, tm, fontDict, fontSize):
+                (x, y) = (tm[4], tm[5])
+                dwg.add(dwg.text(text, insert=(x, y), fill="blue"))
+
+
+            page.extract_text(
+                visitor_operand_before=visitor_svg_rect, visitor_text=visitor_svg_text
+            )
+            dwg.save()
+
+            with open(tempSvgFilepath,'rb') as _svg_file:
+                _svg_content = _svg_file.read()
+            os.remove(tempSvgFilepath)
+            os.removedirs(f"{os.path.dirname(self.poDocFilepath())}/temp")
+            return _svg_content.decode('utf-8')

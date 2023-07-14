@@ -51,7 +51,7 @@ class PO_TYPE_4(PO_BASE):
         """
             Returns the style description
         """
-        return re.findall(r"\s+DESCRIPTION\s?:\s?(.*)\n",self._get_page(self._num_pages()).upper())[0].strip()
+        return re.findall(r"\s+DESCRIPTION\s?:\s?(.*)\n",self.getPage(self.numPages()).upper())[0].strip()
 
     def __totalQuantity(self)->int:
         """
