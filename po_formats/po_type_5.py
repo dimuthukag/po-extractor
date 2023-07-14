@@ -210,7 +210,7 @@ class PO_TYPE_5(PO_BASE):
         nTotal = 0
         colourBasedOrderDict = {}
         sizeRange = ""
-        orderTableList = allContent.upper().split("COLOR COMBINATION")[1:]
+        orderTableList = [re.sub(r"PRINT\s+DATE\s+.*\n?.*\n?.*\n?.*\n?.*\n?.*\n?.*\n?.*\n?.*\n?",'',orderTable) for orderTable in allContent.upper().split("COLOR COMBINATION")[1:]]
         orderTableList = ["COLOR COMBINATION" + orderTable for orderTable in orderTableList]
 
         for orderTable in orderTableList:
