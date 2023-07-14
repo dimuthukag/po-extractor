@@ -75,10 +75,37 @@ class PO_TYPE_4(PO_BASE):
             return """""
         return 'SEA'
         
-    def __getSizeRange(self,currentSize:str,newSize:str=None)->str:
+    def __getSizeRange(self,currentSizes:str,newSizes:str=None)->str:
         """
             Returns the size range
         """
+        sizeFormat = 1 # default 2XL
+        # size correction
+
+        def changeFormat(sizes:str):
+            sizes = " " + sizes + " "
+            for sizeNumber in range(0,7):
+                if sizeNumber ==0:
+                    pass
+                elif sizeNumber ==1:
+                    pass
+                elif sizeNumber>=2:
+                    sizes = sizes.replace(f" {sizeNumber*'X'}S ",f" {sizeNumber}XS ")
+                    sizes = sizes.replace(f" {sizeNumber*'X'}L ",f" {sizeNumber}XL ")
+            return sizes.strip()
+
+        def reverseChangeFormat(sizes:str):
+            sizes = " " + sizes + " "
+            for sizeNumber in range(0,7):
+                if sizeNumber ==0:
+                    pass
+                elif sizeNumber ==1:
+                    pass
+                elif sizeNumber>=2:
+                    sizes = sizes.replace(f" {sizeNumber}XS ",f" {sizeNumber*'X'}S ")
+                    sizes = sizes.replace(f" {sizeNumber}XL ",f" {sizeNumber*'X'}L ")
+            return sizes.strip()
+        
         sizeWeightDict = {
             '6XS':-7,
             '5XS':-6,
@@ -97,27 +124,29 @@ class PO_TYPE_4(PO_BASE):
             '6XL':7,
         }
 
-        if newSize==None:
-            sizeList = set(str(currentSize).split(" - "))
-        elif newSize!=None:
-            sizeList = set(str(currentSize).split(" - ") + str(newSize).split(" "))
+        if newSizes==None:
+            if changeFormat(str(currentSizes))!=str(currentSizes):
+                sizeFormat=2
+                currentSizes = changeFormat(str(currentSizes))
+            sizeList = set(str(currentSizes).split(" - "))
+        elif newSizes!=None:
+            if changeFormat(str(currentSizes))!=str(currentSizes) and changeFormat(str(newSizes))!=str(newSizes):
+                sizeFormat=2
+                currentSizes = changeFormat(str(currentSizes))
+                newSizes = changeFormat(str(newSizes))            
+            sizeList = set(str(currentSizes).split(" - ") + str(newSizes).split(" "))
         try:
             sizeDict = {size : sizeWeightDict[size] for size in sizeList}
             sortedSizeList = sorted(sizeDict.items(), key=lambda x:x[1])
             _fisrt = sortedSizeList[0][0]
             _last = sortedSizeList[-1][0]
-            for sizeNumber in range(0,7):
-                if sizeNumber==0:
-                    pass
-                elif sizeNumber==1:
-                    pass
-                else:
-                    _fisrt = _fisrt.replace(f"{sizeNumber}XS",f"{sizeNumber*'X'}S")
-                    _fisrt = _fisrt.replace(f"{sizeNumber}XL",f"{sizeNumber*'X'}L")           
+            if sizeFormat ==2 :
+                _fisrt = reverseChangeFormat(f" {_fisrt} ")
+                _last = reverseChangeFormat(f" {_last} ")
             if len(sortedSizeList)==1:
                 return f"{_fisrt}"
             elif len(sortedSizeList)>1:
-                return f"{_fisrt} - {_last}"
+                return f"{_fisrt} - {_last}" 
 
         except KeyError:
             sizeList = [int(size) for size in sizeList]
@@ -136,17 +165,8 @@ class PO_TYPE_4(PO_BASE):
         dest = pycountry.countries.get(alpha_2=countryCode).name.upper()
         shipdate = datetime.strptime(re.findall(r"\s?INSTRUCTIONS\s?:\s?.*\s+ETD\s+(\d+/\d+)\s*",self.getPage(1))[0].strip(),"%d/%m").strftime("%d-%b") + "-" +self.__poDate().split("-")[-1]
         supplierCost = float(re.findall(r"\s?INSTRUCTIONS\s?:\s?FOB\s?[A-Z]+\s+\$?([\d\.]+)\s+",self.getPage(self.numPages()).upper())[0])
-        sizes = re.findall("COLOUR\s+DESC([0-9SMXL\s]+)\s+TOTAL\s?",self.getPage(self.numPages()).upper())[0]
-        # size correction
+        sizes = re.findall(r"COLOUR\s+DESC([0-9SMXL\s]+)\s+TOTAL\s?",self.getPage(self.numPages()).upper())[0]
 
-        for sizeNumber in range(0,7):
-            if sizeNumber==0:
-                pass
-            elif sizeNumber==1:
-                pass
-            elif sizeNumber >= 2:
-                sizes = sizes.replace(f" {sizeNumber*'X'}S ",f" {sizeNumber}XS ")
-                sizes = sizes.replace(f" {sizeNumber*'X'}L ",f" {sizeNumber}XL ")
         sizeList = list(filter(None,sizes.split(" ")))
         sizeRange = self.__getSizeRange(" - ".join(sizeList))
 
