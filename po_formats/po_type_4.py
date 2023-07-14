@@ -151,7 +151,7 @@ class PO_TYPE_4(PO_BASE):
         sizeRange = self.__getSizeRange(" - ".join(sizeList))
 
         colourBasedPackData = re.findall(r"TOTAL\s+([0-9A-Z\s/]+)\n\s+TOTAL",self.getPage(self.numPages()).upper())[0]
-        colourBasedPackData = re.findall(r"\s?([0-9]*\s?[A-Z\s]+)\s+[0-9\s]*\s+([0-9]+)\s+\n",colourBasedPackData)
+        colourBasedPackData = re.findall(r"\s?([0-9]*\s?[A-Z\s/]+)\s+[0-9\s]*\s+([0-9]+)\s+\n",colourBasedPackData)
 
         packsData = []
         for eachPo in colourBasedPackData:
