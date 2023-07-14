@@ -271,6 +271,7 @@ class PO_Extractor:
                     else:
                         worksheet[f'AA{maxRow}'].value = poDetail['po_num']
                     worksheet[f'AB{maxRow}'].value = poDetail['po_date']
+                    worksheet[f'AC{maxRow}'].value = 'Confirmed' #po status (fixed for all buyers)
                     worksheet[f'AD{maxRow}'].value = poDetail['shipment_mode']
                     worksheet[f'AE{maxRow}'].value = purchaseOrders[destNumber]['dest']
 
