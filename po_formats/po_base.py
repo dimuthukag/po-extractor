@@ -1,8 +1,10 @@
 import os
-import re
 import pypdfium2
 from PyPDF2 import PdfReader
 import svgwrite
+import pdf2image
+import pytesseract
+import glob
 
 class PO_BASE:
     """
@@ -34,7 +36,7 @@ class PO_BASE:
         """
             Returns a specific page of the purchase order document
         """
-        if type(pageNumber)==int and pageNumber>=0 and pageNumber<=self.numPages():
+        if type(pageNumber)==int and pageNumber>0 and pageNumber<=self.numPages():
             try:
                 return self.__poDoc[pageNumber-1].get_textpage().get_text_range()
             except AttributeError:
@@ -112,3 +114,32 @@ class PO_BASE:
         if type(pageNumber)==int and pageNumber>0 and pageNumber<=self.numPages():
             return PdfReader(self.poDocFilepath()).pages[pageNumber-1].extract_text()
         return None
+    
+    def savePageAsImage(self,pageNumber:int)->str:
+        """
+            Save the page as an image and returns the image path
+        """
+        if pageNumber>0 and pageNumber <= self.numPages():
+            os.makedirs(f"{os.path.dirname(self.poDocFilepath())}/temp",exist_ok=True)
+            try:
+                pages = pdf2image.pdf2image.convert_from_path(self.poDocFilepath(),500,poppler_path=r"./poppler-0.68.0/bin")
+            except pdf2image.exceptions.PDFInfoNotInstalledError:
+                pages = pdf2image.pdf2image.convert_from_path(self.poDocFilepath(),500,poppler_path=r"../poppler-0.68.0/bin")
+
+            try:
+                pytesseract.pytesseract.tesseract_cmd = r"./Tesseract-OCR/tesseract.exe"
+            except pytesseract.pytesseract.TesseractNotFoundError:
+                pytesseract.pytesseract.tesseract_cmd = r"../Tesseract-OCR/tesseract.exe"
+                
+            tempImageFilepath = f'{os.path.dirname(self.poDocFilepath())}/temp/{os.path.basename(self.poDocFilepath())} - {pageNumber}.jpeg'
+            pages[pageNumber-1].save(tempImageFilepath, 'JPEG')
+            return tempImageFilepath
+    
+    def deleteTempFolder(self):
+        """
+            Delete temp folder and its content
+        """
+        temp_folder_file_list = glob.glob(f"{os.path.dirname(self.poDocFilepath())}/temp" + "/*")
+        for file in temp_folder_file_list:
+            os.remove(file)
+        os.removedirs(f"{os.path.dirname(self.poDocFilepath())}/temp")

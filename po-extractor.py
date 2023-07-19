@@ -6,7 +6,7 @@ import shutil
 from tkinter import Tk, Button, Text, font, END, filedialog
 from threading import Thread
 from openpyxl import load_workbook
-from po_formats import text_extract, po_base, po_type_1, po_type_2, po_type_3, po_type_4, po_type_5, po_type_6, po_type_7, po_type_8
+from po_formats import text_extract, po_base, po_type_1, po_type_2, po_type_3, po_type_4, po_type_5, po_type_6, po_type_7, po_type_8, po_type_9
 
 class PO_Extractor:
     """
@@ -168,6 +168,8 @@ class PO_Extractor:
             return ["TYPE-7",None]
         elif "RENFOLD LTD" in poDoc.getPage(1).upper():
             return ["TYPE-8",None]
+        elif "WM MORRISON" in poDoc.getPage(1).upper():
+            return ["TYPE-9",None]
         elif poDoc.getPage(1).upper()=="": 
             poDocContent = text_extract.extract(poDocFilepath,1,poDoc.numPages(),2.2)
             if "WAREHOUSE" in poDocContent[0].upper():
@@ -194,7 +196,9 @@ class PO_Extractor:
             case "TYPE-7":
                 poDoc = po_type_7.PO_TYPE_7(poDocFilepath)
             case "TYPE-8":
-                poDoc = po_type_8.PO_TYPE_8(poDocFilepath)                   
+                poDoc = po_type_8.PO_TYPE_8(poDocFilepath)
+            case "TYPE-9":
+                poDoc = po_type_9.PO_TYPE_9(poDocFilepath)
         (poDetails) = poDoc.output()
         return (poDetails, poFileType)
 
@@ -279,7 +283,7 @@ class PO_Extractor:
                     worksheet[f'AG{maxRow}'].value = packData['pack_sizes']
                     worksheet[f'AI{maxRow}'].value = packData['n_units']
                     worksheet[f'AJ{maxRow}'].value = packData['supplier_cost']
-                    if poFileType!="TYPE-1" and poFileType!="TYPE-8":
+                    if poFileType not in ["TYPE-1", "TYPE-8", "TYPE-9" ]:
                         worksheet[f'AK{maxRow}'].value = packData['supplier_cost']                   
                     maxRow +=1
         workbook.save(excelFile)
