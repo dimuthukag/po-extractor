@@ -60,7 +60,9 @@ class PO_TYPE_5(PO_BASE):
         if len(fabricList)==0:
             fabricList = re.findall(r"[0-9]{1,3}%\s?[A-Z\-\s\(\)/]+\s?",self.getPage(2).upper())
             fabricList = list(set([fabric.replace("%","% ").replace("%  ","% ").strip().split("COLOR COMBINATION")[0] for fabric in fabricList]))
-        return  ", ".join(fabricList).replace("\r","").replace("\n","")
+        fabricStr = ", ".join(fabricList).replace("\r","").replace("\n","")
+        fabricStr = re.sub(r',?\s?\d{1,3}%\s?ODFN','',fabricStr) # correction (remove ***% ODFN)
+        return fabricStr
 
     def __shipmentMode(self)->str:
         """
