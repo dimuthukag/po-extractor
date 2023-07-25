@@ -23,7 +23,7 @@ class PO_TYPE_9(PO_BASE):
         """
             Returns the company name
         """
-        return 'CENTRO SOURCING UK LTD.'
+        return 'CENTRO INTERNATIONAL SOURCING LIMITED'
 
     def __po_number(self)->int:
         """
@@ -178,7 +178,14 @@ class PO_TYPE_9(PO_BASE):
             return f"{_fisrt}"
         elif len(sortedSizeList)>1:
             return f"{_fisrt} - {_last}"
-        
+
+    def __color(self)->str:
+        """
+            Returns the color
+        """
+        y_t = self.__param['y_t_1']
+        cropped_image = img.crop_image(self.__image_filepath,1800,2200,y_t+260,y_t+340)
+        return img.image_to_text(cropped_image,2.32).strip()
 
     def __size_range(self)->str:
         """
@@ -209,8 +216,8 @@ class PO_TYPE_9(PO_BASE):
             "size_range":self.__size_range(),
             "packs_data":[
                 {
-                    'pack_sizes': '',
-                    'pack_colour': '',
+                    'pack_sizes': self.__size_range(),
+                    'pack_colour': self.__color(),
                     'n_packs':None,
                     'n_units':self.__total_quantity(),
                     "supplier_cost":self.__supplier_cost()
