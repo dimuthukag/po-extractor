@@ -23,7 +23,7 @@ class PO_TYPE_9(PO_BASE):
         """
             Returns the company name
         """
-        return 'CENTRO SOURCING UK LTD.'
+        return 'CENTRO INTERNATIONAL SOURCING LIMITED'
 
     def __po_number(self)->int:
         """
