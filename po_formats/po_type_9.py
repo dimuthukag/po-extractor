@@ -216,7 +216,7 @@ class PO_TYPE_9(PO_BASE):
             "size_range":self.__size_range(),
             "packs_data":[
                 {
-                    'pack_sizes': '',
+                    'pack_sizes': self.__size_range(),
                     'pack_colour': self.__color(),
                     'n_packs':None,
                     'n_units':self.__total_quantity(),
