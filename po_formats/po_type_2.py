@@ -137,9 +137,9 @@ class PO_TYPE_2(PO_BASE):
         destQuantityList = re.findall(r"\d+\s?:\s?(\d+)",self.__dataPartition[partitionNumber])
 
         try:
-            packColour = re.findall(r"\d+\s+\d+\s+\d+\s+UNITS\s+([A-Z]+)\s?",self.__dataPartition[partitionNumber])[0]
+            packColour = re.findall(r"\d+\s+\d+\s+\d+\s+UNITS\s+([A-Z]+/?\s?[A-Z]*)\s?",self.__dataPartition[partitionNumber])[0]
         except IndexError:
-            packColour = re.findall(r"COLOUR\s?:\s?([A-Z]+)\s+",self.__dataPartition[partitionNumber])[0]
+            packColour = re.findall(r"COLOUR\s?:\s?([A-Z/\s]+)\s+",self.__dataPartition[partitionNumber])[0]
 
         partitionData:str = self.__dataPartition[partitionNumber]
         # Remove
@@ -173,7 +173,7 @@ class PO_TYPE_2(PO_BASE):
                 partitionData = partitionData.replace(f" {sizeNumber*'X'} LARGE",f" {sizeNumber}XL")
                 partitionData = partitionData.replace(f" {sizeNumber}X LARGE",f" {sizeNumber}XL")      
 
-        packSizes = re.findall(r"\d+\s+\d+\s+\d+\s+UNITS\s+[A-Z]+\s+([A-Z0-9]+)",partitionData)
+        packSizes = re.findall(r"\d\s+\d+\s+\d+\s+UNITS\s+[A-Z]+/?\s?[A-Z]*\s+(\d{0,2}[X]?[SML]?)",partitionData)
         if len(packSizes)!=0:
             packSizes = self.__getSizeRange(" - ".join(packSizes))
         elif len(packSizes)==0:
