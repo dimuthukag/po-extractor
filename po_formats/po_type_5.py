@@ -80,8 +80,8 @@ class PO_TYPE_5(PO_BASE):
             try:
                 return re.findall(r"\s?STYLE\s+NAME\s?:\s?([A-Z0-9\s]+)\s?.*\n?",self.getPage(1).upper())[0].replace("SHIPMENT DATE","").strip()
             except IndexError:
-                return re.findall(r"\n\d+\s+[0-9A-Z\s]+\s+\d+\s+([0-9A-Z\s\-]+),\s?[A-Z\.]+,\s+[0-9]*X?[SML]?\s+\d+\s+[\d\.]+",self.getPage(2).upper())[0].replace("SHIPMENT DATE","").strip()
-
+                return re.findall(r"\n\d+\s+[0-9A-Z\s]+\s+\d+\s+([0-9A-Z\s\-\Ø]+),?\s?[A-Z\.]+,?\s+[0-9]*X?[SML]?\s+\d+\s+[\d\.]+",self.getPage(2).upper())[0].replace("SHIPMENT DATE","").strip()
+    
     def __styleDescription(self)->str:
         """
             Returns the style description
@@ -275,8 +275,7 @@ class PO_TYPE_5(PO_BASE):
         packsData = []
         for colour in colourBasedOrderDict.keys():
             packsData.append(colourBasedOrderDict[colour])     
-
-        orders = re.findall(r"\n(\d{0,5})\s+[0-9A-Z\s]+\s+\d+\s+[0-9A-Z\s\-]+,\s?([A-Z\.]+),\s+([0-9]*X?[SML]?)\s+(\d+)\s+([\d\.]+)",allContent.upper())
+        orders = re.findall(r"\n(\d{0,5})\s+[0-9A-Z\s]+\s+\d+\s+[0-9A-Z\s\-\Ø]+,?\s?([A-Z\.]+),?\s+([0-9]*X?[SML]?)\s+(\d+)\s+([\d\.]+)",allContent.upper())
 
         for order in orders:
             n1,colour,size,n2,supplierCost = order
