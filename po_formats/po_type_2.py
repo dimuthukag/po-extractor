@@ -66,9 +66,9 @@ class PO_TYPE_2(PO_BASE):
             Returns the gmt item
         """
         try:
-            return re.findall(r"KEYCODE\s?:\s?\d+\s+[A-Z0-9]+\s+([A-Z\s]+)\s+FLAT\s+PACK",self.__dataPartition[partitionNumber])[0]
+            return re.findall(r"KEYCODE\s?:\s?\d+\s+[A-Z0-9]+\s+([0-9A-Z\s\"]+)\s+FLAT\s+PACK",self.__dataPartition[partitionNumber])[0]
         except IndexError:
-            return re.findall(r"STYLE\s+PACK\s?:\s?\d+\s+[A-Z0-9]+\s+([A-Z\s]+)\s+FLAT\s+PACK",self.__dataPartition[partitionNumber])[0]
+            return re.findall(r"STYLE\s+PACK\s?:\s?\d+\s+[A-Z0-9]+\s+([0-9A-Z\s\"]+)\s+FLAT\s+PACK",self.__dataPartition[partitionNumber])[0]
 
     def __totalQuantity(self,partitionNumber:int)->int:
         """
@@ -131,10 +131,15 @@ class PO_TYPE_2(PO_BASE):
 
         supplierCost = float(re.findall(r"COST\s+PER\s+UNIT\s?-\s?HOME\s+COST\s?:\s?([0-9\.]+)\s+",self.__dataPartition[partitionNumber])[0])
         shipDate = datetime.strptime(re.findall(r"\s?DLV\s+CONS\s+DATE\s?:\s?([0-9]+/[0-9]+/[0-9]+)",self.getPage(1))[0],"%d/%m/%y").strftime("%d-%b-%y")
-
-        destList = re.findall(r"(.*)\n\s?LOCN\s?:\s?QTY\s?",self.__dataPartition[partitionNumber])[0].strip().split(" ")
-        destNumberList = re.findall(r"(\d+)\s?:\s?\d+",self.__dataPartition[partitionNumber])
-        destQuantityList = re.findall(r"\d+\s?:\s?(\d+)",self.__dataPartition[partitionNumber])
+        
+        try:
+            destList = re.findall(r"(.*)\n\s?LOCN\s?:\s?QTY\s?",self.__dataPartition[partitionNumber])[0].strip().split(" ")
+            destNumberList = re.findall(r"(\d+)\s?:\s?\d+",self.__dataPartition[partitionNumber])
+            destQuantityList = re.findall(r"\d+\s?:\s?(\d+)",self.__dataPartition[partitionNumber])
+        except IndexError:
+            destList = [""]
+            destNumberList = [0]
+            destQuantityList = [0]
 
         try:
             packColour = re.findall(r"\d+\s+\d+\s+\d+\s+UNITS\s+([A-Z]+/?\s?[A-Z]*)\s?",self.__dataPartition[partitionNumber])[0]
