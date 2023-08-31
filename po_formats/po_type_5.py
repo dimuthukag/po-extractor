@@ -34,7 +34,10 @@ class PO_TYPE_5(PO_BASE):
         try:
             return int(re.findall(r"\s?STYLE\s+NUMBER\s?:\s?\n\s?(\d+)\s+",self.getPage(1).upper())[0])
         except IndexError:
-            return int(re.findall(r"PO\s+NUMBER\s?:?\s?(\d+)\s?",self.getPage(1).upper())[0])
+            try:
+                return int(re.findall(r"PO\s+NUMBER\s?:?\s?(\d+)\s?",self.getPage(1).upper())[0])
+            except IndexError:
+                return ''
 
     def __poDate(self)->str:
         """
@@ -239,13 +242,16 @@ class PO_TYPE_5(PO_BASE):
 
             sizeRange += sizes + " "
             orderTable = "\n".join([row for row in  orderTable.split("\n")[1:]])
-            orderList = re.findall(r"[A-Z\s\.]*\s?\d*\s?\d+\s+\d+\s+\d*\s?\d+\s+\d+\s+\d+",orderTable)
+            orderList = re.findall(r"[0-9A-Z\s\.\-\n]*\s?\d*\s?\d*\s+\d*\s+\d*\s?\d+\s+\d+\s+\d+",orderTable)           
+            orderList = list(filter(None, [row.split('TCX')[-1].strip() for row in orderList[0].split('PCS CRT TOTAL')[-1].split('\n')]))
             prevColour = ""
+            if not re.findall(r"[0-9A-Z\s\.\-\n]*\s?\d*\s?\d*\s+\d*\s+\d*\s?\d+\s+\d+\s+\d+", orderList[0]):
+                temp_order_list = []
+                for index in range(3,len(orderList),3):
+                    temp_order_list.append(f'{orderList[index-2]} {orderList[index-1]} {orderList[index]}')
+                orderList = temp_order_list
             for order in orderList:
                 (colour,n) = re.findall(r"\s?([A-Z\s\.\n]*)\s+.*\s+(\d+)",order.replace("TCX","").strip())[0]
-                #_colour = _colour.split("\n")[-1].strip()
-                colour = colour.split("PCS CRT TOTAL")[-1].strip()
-                colour = colour.replace("\n"," ")
                 nTotal += int(n)
                 if colour != "" and colour not in colourBasedOrderDict.keys():
                     colourBasedOrderDict[colour] = {
@@ -278,7 +284,10 @@ class PO_TYPE_5(PO_BASE):
         packsData = []
         for colour in colourBasedOrderDict.keys():
             packsData.append(colourBasedOrderDict[colour])     
-        orders = re.findall(r"\n(\d{0,5})\s+[0-9A-Z\s]+\s+\d+\s+[0-9A-Z\s\-\Ø]+,?\s?([A-Z\.]+),?\s+([0-9]*X?[SML]?)\s+(\d+)\s+([\d\.]+)",allContent.upper())
+        
+        orders = []
+        if not packsData:
+            orders = re.findall(r"\n(\d{0,5})\s+[0-9A-Z\s]+\s+\d+\s+[0-9A-Z\s\-\Ø]+,?\s?([A-Z\.]+),?\s+([0-9]*X?[SML]?)\s+(\d+)\s+([\d\.]+)",allContent.upper())
 
         for order in orders:
             n1,colour,size,n2,supplierCost = order
