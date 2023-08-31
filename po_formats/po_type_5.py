@@ -215,6 +215,8 @@ class PO_TYPE_5(PO_BASE):
         orderTableList = [re.sub(r"PRINT\s+DATE\s+.*\n?.*\n?.*\n?.*\n?.*\n?.*\n?.*\n?.*\n?.*\n?",'',orderTable) for orderTable in allContent.upper().split("COLOR COMBINATION")[1:]]
         orderTableList = ["COLOR COMBINATION" + orderTable for orderTable in orderTableList]
 
+        orderTableList = [orderTable.split("PLEASE NOTE")[0] for orderTable in orderTableList]
+        orderTableList = [orderTable.split("DEADLINES")[0] for orderTable in orderTableList]
         for orderTable in orderTableList:
             sizes = re.findall(r"COLOR\s+COMBINATION\s+ARTICLE\s+NO\s+ARTICLE\s+EAN\s+CARTON\s+EAN([0-9SMXL\s/\n]+)PCS\s+CRT\s+TOTAL",orderTable)[0].replace("/"," ").replace("\r","").replace("\n"," ").strip()
 
@@ -236,6 +238,7 @@ class PO_TYPE_5(PO_BASE):
                 sizes = " ".join(newSizes)
 
             sizeRange += sizes + " "
+            orderTable = "\n".join([row for row in  orderTable.split("\n")[1:]])
             orderList = re.findall(r"[A-Z\s\.]*\s?\d*\s?\d+\s+\d+\s+\d*\s?\d+\s+\d+\s+\d+",orderTable)
             prevColour = ""
             for order in orderList:
