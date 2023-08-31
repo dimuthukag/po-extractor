@@ -187,7 +187,7 @@ class PO_TYPE_5(PO_BASE):
         poDict = {}
         dest = "AARHUS"
 
-        allContent = "".join([self.getPage(pageNumber) for pageNumber in range(1,self.numPages()+1)])
+        allContent = "\n\n".join([self.getPage(pageNumber) for pageNumber in range(1,self.numPages()+1)])
 
         # ship date
         try:
@@ -215,7 +215,8 @@ class PO_TYPE_5(PO_BASE):
         nTotal = 0
         colourBasedOrderDict = {}
         sizeRange = ""
-        orderTableList = [re.sub(r"PRINT\s+DATE\s+.*\n?.*\n?.*\n?.*\n?.*\n?.*\n?.*\n?.*\n?.*\n?",'',orderTable) for orderTable in allContent.upper().split("COLOR COMBINATION")[1:]]
+        allContent = re.sub(r"[0-9]*\s+OF\s+[0-9]*",'',allContent.upper())
+        orderTableList = [re.sub(r"PRINT\s+DATE\s+.*\n?.*\n?.*\n?.*\n?.*\n?.*\n?.*\n?.*\n?.*\n?",'',orderTable) for orderTable in allContent.split("COLOR COMBINATION")[1:]]
         orderTableList = ["COLOR COMBINATION" + orderTable for orderTable in orderTableList]
 
         orderTableList = [orderTable.split("PLEASE NOTE")[0] for orderTable in orderTableList]
@@ -251,7 +252,7 @@ class PO_TYPE_5(PO_BASE):
                     temp_order_list.append(f'{orderList[index-2]} {orderList[index-1]} {orderList[index]}')
                 orderList = temp_order_list
             for order in orderList:
-                (colour,n) = re.findall(r"\s?([A-Z\s\.\n]*)\s+.*\s+(\d+)",order.replace("TCX","").strip())[0]
+                (colour,n) = re.findall(r"([A-Z\s\.\n]*)\s+.*\s+(\d+)",order.strip())[0]
                 nTotal += int(n)
                 if colour != "" and colour not in colourBasedOrderDict.keys():
                     colourBasedOrderDict[colour] = {
